@@ -8,42 +8,45 @@
   :root{
     --bg:#F1F2EF; --surface:#FFFFFF; --ink:#1E252A; --muted:#5C6872;
     --line:#DCE0DB; --accent:#8A5A2B; --ok:#2E7D4F; --warn:#9C6410; --bad:#AF3C2B;
-    --paper:#F7F3EC; --head:#EFEAE0;
+    --paper:#F7F3EC; --head:#EFEAE0; --dangerBg:#B5392A;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
       --bg:#14171A; --surface:#1D2124; --ink:#ECEFEC; --muted:#99A4AA;
       --line:#2D3337; --accent:#D39A5E; --ok:#5BBF8A; --warn:#DFA64D; --bad:#E07A66;
-      --head:#262B2F;
+      --head:#262B2F; --dangerBg:#C4503C;
       color-scheme: dark;
     }
   }
   *{box-sizing:border-box}
+  [hidden]{display:none !important}
   body{
     margin:0; background:var(--bg); color:var(--ink);
     font:15px/1.55 "Segoe UI", system-ui, -apple-system, sans-serif;
-    padding:26px max(16px, env(safe-area-inset-left,0px)) 64px max(16px, env(safe-area-inset-right,0px));
+    padding:clamp(14px,2.6vw,26px) max(14px, env(safe-area-inset-left,0px))
+            56px max(14px, env(safe-area-inset-right,0px));
+    overflow-x:hidden;
   }
-  .wrap{max-width:1680px; margin:0 auto; display:flex; flex-direction:column; gap:18px}
-  header h1{font-size:27px; margin:0 0 6px; letter-spacing:-.02em}
-  header p{margin:0; color:var(--muted); max-width:78ch}
-  .card{background:var(--surface); border:1px solid var(--line); border-radius:13px; padding:18px}
+  .wrap{max-width:1440px; margin:0 auto; display:flex; flex-direction:column;
+    gap:clamp(12px,1.6vw,18px)}
+  header h1{font-size:clamp(20px,4.2vw,28px); margin:0 0 6px; letter-spacing:-.02em}
+  header p{margin:0; color:var(--muted); max-width:78ch; font-size:clamp(13.5px,1.6vw,15px)}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:13px;
+    padding:clamp(13px,2vw,20px); min-width:0}
 
-  /* ---- grade principal ---- */
-  .grid{display:grid; gap:18px; grid-template-columns:repeat(12,1fr); align-items:start}
-  .grid > *{grid-column:1 / -1}
-  .a-side, .a-dim{display:flex; flex-direction:column; gap:18px; min-width:0}
   .chip .pq{color:var(--muted)}
-  @media (min-width:920px){
-    .a-dim{grid-column:1 / span 5}
-    .a-3d {grid-column:6 / span 7}
+
+  /* ---- cartão 1: campos à esquerda, projetos salvos à direita ---- */
+  .dimgrid{display:grid; gap:20px; grid-template-columns:1fr; align-items:start}
+  .dimleft{min-width:0}
+  @media (min-width:880px){ .dimgrid{grid-template-columns:1.15fr 1fr} }
+
+  /* ---- listas em colunas quando há largura ---- */
+  @media (min-width:780px){
+    #matList, #steps{columns:2; column-gap:34px}
+    #matList li, #steps li{break-inside:avoid; -webkit-column-break-inside:avoid}
   }
-  @media (min-width:1260px){
-    .a-dim  {grid-column:1 / span 4}
-    .a-3d   {grid-column:5 / span 8}
-    .a-sheet{grid-column:1 / span 7}
-    .a-side {grid-column:8 / span 5}
-  }
+  @media (min-width:1240px){ #steps{columns:2; column-gap:40px} }
   h2{font-size:16px; margin:0 0 12px; letter-spacing:.01em}
   h2 .n{color:var(--muted); font-weight:600; margin-right:7px}
   h2 .sub{color:var(--muted); font-weight:400; margin-left:8px; font-size:13.5px}
@@ -64,7 +67,12 @@
   .badge.bad{color:var(--bad); border-color:currentColor}
 
   /* ---- projetos salvos ---- */
-  .savebox{margin-top:18px; padding-top:16px; border-top:1px solid var(--line)}
+  .savebox{margin-top:4px; padding-top:16px; border-top:1px solid var(--line); min-width:0}
+  @media (min-width:880px){
+    .savebox{margin-top:0; padding-top:0; border-top:none;
+      padding-left:24px; border-left:1px solid var(--line)}
+  }
+  .saverow button{flex:none}
   .sbhead{font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
     color:var(--muted); margin-bottom:10px}
   .saverow{display:flex; gap:8px}
@@ -72,27 +80,64 @@
     border:1px solid var(--line); background:var(--bg); color:var(--ink)}
   .saverow input:focus{outline:2px solid var(--accent); outline-offset:1px}
   .pjlist{display:flex; flex-direction:column; gap:7px; margin-top:11px}
-  .pj{display:flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:9px; padding:8px 10px}
+  .pj{display:flex; flex-wrap:wrap; align-items:center; gap:7px;
+    border:1px solid var(--line); border-radius:9px; padding:8px 10px}
   .pj.on{border-color:var(--accent); background:var(--bg)}
+  .pj.chg{border-color:var(--warn)}
+  .pj.edit{border-color:var(--accent); align-items:stretch}
+  .pj .info{flex:1 1 150px; min-width:0}
   .pj .nm{font-weight:600; font-size:14px; overflow-wrap:anywhere}
   .pj .dm{font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; margin-top:1px}
-  .pj .sp{flex:1}
   .pj button{padding:5px 10px; font-size:12.5px}
   .pjempty{color:var(--muted); font-size:13.5px; line-height:1.5}
-  .tagnow{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
-    color:var(--accent); border:1px solid currentColor; border-radius:5px; padding:1px 5px; margin-left:5px}
+  .tagnow,.tagchg{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+    border:1px solid currentColor; border-radius:5px; padding:1px 5px; margin-left:5px; white-space:nowrap}
+  .tagnow{color:var(--accent)}
+  .tagchg{color:var(--warn)}
+  .efwrap{display:flex; flex-direction:column; gap:9px; width:100%}
+  .efwrap input[type=text]{font:inherit; font-size:14px; padding:8px 10px; border-radius:8px; width:100%;
+    border:1px solid var(--line); background:var(--surface); color:var(--ink)}
+  .efwrap input[type=text]:focus{outline:2px solid var(--accent); outline-offset:1px}
+  .efchk{display:flex; gap:7px; align-items:flex-start; font-size:12.5px; color:var(--muted); line-height:1.45}
+  .efchk input{margin-top:2px; accent-color:var(--accent); flex:none}
+  .efbtns{display:flex; gap:7px}
+
+  /* ---- modal de confirmação ---- */
+  dialog#dlg{border:none; padding:0; background:transparent; color:var(--ink);
+    width:min(430px, calc(100vw - 32px))}
+  dialog#dlg::backdrop{background:rgba(10,13,15,.58); backdrop-filter:blur(3px)}
+  .dlgbox{background:var(--surface); border:1px solid var(--line); border-radius:15px;
+    padding:22px 24px 19px; box-shadow:0 20px 55px rgba(0,0,0,.3)}
+  .dlgbox h3{margin:0 0 7px; font-size:17.5px; letter-spacing:-.01em}
+  .dlgbox .txt{margin:0; font-size:14px; color:var(--muted); line-height:1.5}
+  .dlgcard{margin-top:13px; border:1px solid var(--line); border-radius:10px;
+    padding:10px 12px; background:var(--bg)}
+  .dlgcard .nm{font-weight:600; font-size:14.5px; overflow-wrap:anywhere}
+  .dlgcard .dm{font-size:12.5px; color:var(--muted); font-variant-numeric:tabular-nums; margin-top:2px}
+  .dlgbtns{display:flex; gap:9px; justify-content:flex-end; margin-top:19px}
+  .dlgbtns button{padding:9px 17px}
+  button.danger{background:var(--dangerBg); border-color:var(--dangerBg); color:#fff}
+  dialog#dlg[open]{animation:dlgIn .17s cubic-bezier(.2,.8,.3,1)}
+  dialog#dlg[open]::backdrop{animation:bdIn .17s ease-out}
+  @keyframes dlgIn{from{opacity:0; transform:translateY(10px) scale(.97)}}
+  @keyframes bdIn{from{opacity:0}}
+  @media (prefers-reduced-motion:reduce){
+    dialog#dlg[open], dialog#dlg[open]::backdrop{animation:none}
+  }
 
   /* ---- 3D ---- */
-  #view3d{position:relative; height:430px; border-radius:11px; overflow:hidden;
+  #view3d{position:relative; height:clamp(290px,54vh,430px); border-radius:11px; overflow:hidden;
     background:#23272B; border:1px solid var(--line); touch-action:none; cursor:grab}
-  @media (min-width:1260px){ #view3d{height:560px} }
+  @media (min-width:900px){ #view3d{height:520px} }
+  @media (min-width:1300px){ #view3d{height:600px} }
+  @media (max-width:560px){ #view3d .tag{display:none} }
   #view3d canvas{display:block}
   #view3d .hintbox{position:absolute; left:13px; bottom:10px; color:#8F9BA3; font-size:12px; pointer-events:none}
   #view3d .tag{position:absolute; right:13px; top:11px; color:#8F9BA3; font-size:12px; pointer-events:none}
   #view3d .fallback{display:flex; align-items:center; justify-content:center; height:100%;
     color:#9AA6AE; font-size:14px; text-align:center; padding:28px; line-height:1.6}
   .v3bar{display:flex; flex-wrap:wrap; gap:16px; align-items:center; margin-top:13px}
-  .v3bar .exp{display:flex; align-items:center; gap:10px; flex:1; min-width:230px; font-size:13.5px; color:var(--muted)}
+  .v3bar .exp{display:flex; align-items:center; gap:10px; flex:1; min-width:195px; font-size:13.5px; color:var(--muted)}
   .v3bar .exp input{flex:1; accent-color:var(--accent)}
   .vbtns{display:flex; gap:6px; flex-wrap:wrap}
   .vbtns button{padding:6px 11px; font-size:13px}
@@ -108,8 +153,14 @@
   .pinfo .d{font-variant-numeric:tabular-nums; font-weight:700; color:var(--accent); font-size:14px; margin-top:4px}
   .pinfo p{margin:8px 0 0; font-size:13.5px; color:var(--muted)}
 
+  .sheetscroll{overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:13px}
   .sheet{background:var(--paper); border:1px solid var(--line); border-radius:13px; padding:6px}
   .sheet svg{width:100%; height:auto; display:block}
+  .sheethint{display:none; font-size:12.5px; color:var(--muted); margin:9px 0 0}
+  @media (max-width:900px){
+    .sheet{min-width:800px}
+    .sheethint{display:block}
+  }
 
   .actions{display:flex; flex-wrap:wrap; gap:9px; align-items:center}
   .actions .note{color:var(--muted); font-size:13px}
@@ -121,16 +172,19 @@
 
   table{width:100%; border-collapse:collapse; font-size:14px}
   th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top}
+  @media (max-width:620px){ table{font-size:13px} th,td{padding:7px 7px} }
   th{background:var(--head); font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted)}
   td.num{font-variant-numeric:tabular-nums; white-space:nowrap; font-weight:600}
   td.id{font-weight:700; color:var(--accent); width:28px}
   tr.hl td{background:color-mix(in srgb, var(--accent) 12%, transparent)}
   .tscroll{overflow-x:auto}
 
-  .specs{display:grid; grid-template-columns:repeat(auto-fit,minmax(168px,1fr)); gap:12px}
-  .spec{border:1px solid var(--line); border-radius:11px; padding:12px 15px; background:var(--surface)}
-  .spec b{display:block; font-size:23px; font-variant-numeric:tabular-nums; margin-top:2px}
-  .spec span{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em}
+  .specs{display:grid; grid-template-columns:repeat(auto-fit,minmax(142px,1fr)); gap:10px}
+  .spec{border:1px solid var(--line); border-radius:11px; padding:11px 13px; background:var(--surface);
+    min-width:0}
+  .spec b{display:block; font-size:clamp(18px,3.2vw,23px); font-variant-numeric:tabular-nums; margin-top:2px}
+  .spec span{font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;
+    display:block; line-height:1.3}
 
   ul,ol{margin:0; padding-left:20px}
   li{margin:5px 0}
@@ -165,35 +219,34 @@
     <div class="spec"><span>Plataforma — piso útil</span><b id="spPlat">—</b></div>
   </div>
 
-  <div class="grid">
-
-  <div class="a-dim">
-
   <section class="card">
     <h2><span class="n">1</span>Dimensões</h2>
+    <div class="dimgrid">
+    <div class="dimleft">
     <div class="controls">
-      <div class="field">
+      <div class="field" id="fH">
         <label for="inH">Altura da plataforma (cm)</label>
         <input id="inH" type="number" min="25" max="95" step="1" value="60">
         <span class="hint">igual ao topo do colchão (ou 1 cm abaixo)</span>
       </div>
-      <div class="field">
+      <div class="field" id="fL">
         <label for="inL">Comprimento da rampa (cm)</label>
         <input id="inL" type="number" min="55" max="260" step="1" value="132">
         <span class="hint" id="hintL">medido na inclinação</span>
       </div>
-      <div class="field">
+      <div class="field" id="fP">
         <label for="inP">Plataforma — profundidade (cm)</label>
         <input id="inP" type="number" min="15" max="90" step="1" value="35">
         <span class="hint">parte plana no topo, no nível da cama</span>
       </div>
-      <div class="field">
+      <div class="field" id="fW">
         <label for="inW">Largura total (cm)</label>
         <input id="inW" type="number" min="25" max="80" step="1" value="40">
         <span class="hint">medida externa, laterais incluídas</span>
       </div>
     </div>
     <div class="badge ok" id="badge"></div>
+    </div><!-- /dimleft -->
 
     <div class="savebox">
       <div class="sbhead">Projetos salvos</div>
@@ -209,17 +262,11 @@
       </div>
       <p class="mut" id="pjNote"></p>
     </div>
+    </div><!-- /dimgrid -->
   </section>
 
   <section class="card">
-    <h2><span class="n">2</span>Outros materiais</h2>
-    <ul id="matList"></ul>
-  </section>
-
-  </div><!-- /a-dim -->
-
-  <section class="card a-3d">
-    <h2><span class="n">3</span>Modelo 3D<span class="sub">clique em uma peça para ver onde ela fica</span></h2>
+    <h2><span class="n">2</span>Modelo 3D<span class="sub">clique em uma peça para ver onde ela fica</span></h2>
     <div id="view3d">
       <div class="tag">a ponta alta é o lado da cama</div>
       <div class="hintbox">arraste para girar · roda do mouse para aproximar</div>
@@ -235,17 +282,24 @@
         <button data-v="front">Lado da cama</button>
         <button data-v="top">Topo</button>
       </div>
+      <div class="vbtns" id="zbtns">
+        <button data-z="in" aria-label="Aproximar">+</button>
+        <button data-z="out" aria-label="Afastar">−</button>
+      </div>
     </div>
     <div class="chips" id="chips"></div>
     <div class="pinfo" id="pinfo"></div>
   </section>
 
-  <section class="card a-sheet">
-    <h2><span class="n">4</span>Prancha do projeto</h2>
-    <div class="sheet">
-      <svg id="sheet" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1900 1100" width="1900" height="1100"
-           role="img" aria-label="Prancha do projeto: vista lateral, molde da lateral, pisos, corte transversal e lista de corte"></svg>
+  <section class="card">
+    <h2><span class="n">3</span>Prancha do projeto</h2>
+    <div class="sheetscroll">
+      <div class="sheet">
+        <svg id="sheet" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1900 1100" width="1900" height="1100"
+             role="img" aria-label="Prancha do projeto: vista lateral, molde da lateral, pisos, corte transversal e lista de corte"></svg>
+      </div>
     </div>
+    <p class="sheethint">Arraste a prancha para o lado para ver tudo — ou baixe em PNG/SVG para abrir maior.</p>
     <div class="actions" style="margin-top:14px">
       <button class="primary" id="btnPng">Baixar PNG</button>
       <button id="btnJpg">Baixar JPEG</button>
@@ -254,10 +308,8 @@
     </div>
   </section>
 
-  <div class="a-side">
-
   <section class="card">
-    <h2><span class="n">5</span>Lista de corte — madeira</h2>
+    <h2><span class="n">4</span>Lista de corte — madeira</h2>
     <div class="tscroll">
       <table>
         <thead><tr><th></th><th>Peça</th><th>Qtd.</th><th>Medidas (cm)</th><th>Espessura</th><th>Observação</th></tr></thead>
@@ -272,14 +324,31 @@
   </section>
 
   <section class="card">
+    <h2><span class="n">5</span>Outros materiais</h2>
+    <ul id="matList"></ul>
+  </section>
+
+  <section class="card">
     <h2><span class="n">6</span>Montagem</h2>
     <ol id="steps"></ol>
   </section>
 
-  </div><!-- /a-side -->
-  </div><!-- /grid -->
-
 </div>
+
+<dialog id="dlg" aria-labelledby="dlgTitle">
+  <div class="dlgbox">
+    <h3 id="dlgTitle">Excluir projeto</h3>
+    <p class="txt" id="dlgText"></p>
+    <div class="dlgcard" id="dlgCard">
+      <div class="nm" id="dlgNm"></div>
+      <div class="dm" id="dlgDm"></div>
+    </div>
+    <div class="dlgbtns">
+      <button id="dlgNo" autofocus>Cancelar</button>
+      <button id="dlgOk" class="danger">Excluir</button>
+    </div>
+  </div>
+</dialog>
 
 <script>
 (function(){
@@ -467,6 +536,12 @@
     V.renderer.setPixelRatio(Math.min(2, window.devicePixelRatio||1));
     cont.insertBefore(V.renderer.domElement, cont.firstChild);
 
+    var coarse = window.matchMedia && window.matchMedia('(pointer:coarse)').matches;
+    var hb = cont.querySelector('.hintbox');
+    if(hb) hb.textContent = coarse
+      ? 'arraste para girar · dois dedos para aproximar · toque numa peça'
+      : 'arraste para girar · roda do mouse para aproximar · clique numa peça';
+
     V.scene = new THREE.Scene();
     V.scene.background = new THREE.Color(0x23272B);
     V.camera = new THREE.PerspectiveCamera(42, 1, 1, 12000);
@@ -478,6 +553,10 @@
 
     bindPointer();
     window.addEventListener('resize', resize3);
+    window.addEventListener('orientationchange', function(){ setTimeout(resize3, 220); });
+    if(window.ResizeObserver){
+      try{ new ResizeObserver(function(){ resize3(); }).observe(cont); }catch(_){}
+    }
     V.ok = true;
     return true;
   }
@@ -665,38 +744,70 @@
     var hits = V.ray.intersectObjects(V.pick, false);
     return hits.length ? hits[0].object.userData.pid : null;
   }
+  function zoom3(k){
+    V.rad = Math.max(V.radMin, Math.min(V.radMax, V.rad*k));
+    render3();
+  }
   function bindPointer(){
     var dom = V.renderer.domElement, down=false, lx=0, ly=0, moved=0;
+    var pts={}, pinchD=0, pinchR=0;
+
+    function count(){ var n=0; for(var k in pts) if(pts.hasOwnProperty(k)) n++; return n; }
+    function gap(){
+      var a=null,b=null;
+      for(var k in pts){ if(!pts.hasOwnProperty(k)) continue; if(!a) a=pts[k]; else if(!b) b=pts[k]; }
+      if(!a||!b) return 0;
+      return Math.sqrt((a.x-b.x)*(a.x-b.x)+(a.y-b.y)*(a.y-b.y));
+    }
+
     dom.addEventListener('pointerdown', function(e){
-      down=true; moved=0; lx=e.clientX; ly=e.clientY;
-      cont.style.cursor='grabbing';
+      pts[e.pointerId]={x:e.clientX,y:e.clientY};
       try{ dom.setPointerCapture(e.pointerId); }catch(_){}
+      if(count()>=2){ pinchD=gap(); pinchR=V.rad; down=false; moved=999; }
+      else { down=true; moved=0; lx=e.clientX; ly=e.clientY; cont.style.cursor='grabbing'; }
     });
+
     dom.addEventListener('pointermove', function(e){
+      if(pts[e.pointerId]) pts[e.pointerId]={x:e.clientX,y:e.clientY};
+
+      if(count()>=2){
+        var d=gap();
+        if(pinchD>4 && d>4){
+          V.rad = Math.max(V.radMin, Math.min(V.radMax, pinchR*pinchD/d));
+          render3();
+        }
+        return;
+      }
       if(down){
         var dx=e.clientX-lx, dy=e.clientY-ly; lx=e.clientX; ly=e.clientY;
         moved += Math.abs(dx)+Math.abs(dy);
         V.theta -= dx*0.0085;
         V.phi = Math.max(0.10, Math.min(1.72, V.phi - dy*0.0065));
         render3();
-      } else {
+      } else if(e.pointerType!=='touch'){
         var pid = pickAt(e);
         if(pid!==V.hov){ V.hov=pid; applySel(); render3(); cont.style.cursor = pid?'pointer':'grab'; }
       }
     });
-    dom.addEventListener('pointerup', function(e){
-      down=false; cont.style.cursor='grab';
+
+    function up(e){
+      delete pts[e.pointerId];
       try{ dom.releasePointerCapture(e.pointerId); }catch(_){}
-      if(moved<6){ var pid=pickAt(e); select(pid===V.sel ? null : pid); }
-    });
-    dom.addEventListener('pointercancel', function(){ down=false; cont.style.cursor='grab'; });
-    dom.addEventListener('pointerleave', function(){
-      if(V.hov){ V.hov=null; applySel(); render3(); }
+      if(count()<2) pinchD=0;
+      if(count()===0){
+        down=false; cont.style.cursor='grab';
+        if(moved<6){ var pid=pickAt(e); select(pid===V.sel ? null : pid); }
+        if(e.pointerType==='touch' && V.hov){ V.hov=null; applySel(); render3(); }
+      }
+    }
+    dom.addEventListener('pointerup', up);
+    dom.addEventListener('pointercancel', up);
+    dom.addEventListener('pointerleave', function(e){
+      if(e.pointerType!=='touch' && V.hov){ V.hov=null; applySel(); render3(); }
     });
     dom.addEventListener('wheel', function(e){
       e.preventDefault();
-      V.rad = Math.max(V.radMin, Math.min(V.radMax, V.rad * (e.deltaY>0 ? 1.11 : 0.9)));
-      render3();
+      zoom3(e.deltaY>0 ? 1.11 : 0.9);
     }, {passive:false});
   }
 
@@ -1065,8 +1176,8 @@
      RENDER GERAL
      =================================================================== */
   function render(){
-    var H=clamp(inH.value,25,95), L=clamp(inL.value,55,260),
-        W=clamp(inW.value,25,80), P=clamp(inP.value,15,90);
+    var H=clamp(inH.value,25,95), W=clamp(inW.value,25,80),
+        L=clamp(inL.value,55,260), P=clamp(inP.value,15,90);
 
     document.getElementById('hintL').textContent = 'sugestão: ' + Math.round(H*2.2) + ' a ' + Math.round(H*2.6) + ' cm';
 
@@ -1200,6 +1311,11 @@
     var bs = this.querySelectorAll('button');
     for(var i=0;i<bs.length;i++) bs[i].className = (bs[i]===b?'on':'');
   });
+  document.getElementById('zbtns').addEventListener('click', function(e){
+    var b = e.target.closest ? e.target.closest('button[data-z]') : null;
+    if(!b) return;
+    zoom3(b.getAttribute('data-z')==='in' ? 0.82 : 1.22);
+  });
   document.getElementById('cutBody').addEventListener('click', function(e){
     var tr = e.target.closest ? e.target.closest('tr[data-p]') : null;
     if(!tr) return;
@@ -1223,6 +1339,33 @@
   function sameDims(a,b){ return a.H===b.H && a.L===b.L && a.P===b.P && a.W===b.W; }
   function pjNote(t){ document.getElementById('pjNote').innerHTML = t ? '<small>'+escHtml(t)+'</small>' : ''; }
 
+  /* ---------- modal de confirmação ---------- */
+  var dlg=document.getElementById('dlg'), dlgPending=null;
+  function askConfirm(o, onOk){
+    document.getElementById('dlgTitle').textContent = o.title || 'Confirmar';
+    document.getElementById('dlgText').textContent  = o.text  || '';
+    var card=document.getElementById('dlgCard');
+    if(o.name){
+      card.hidden=false;
+      document.getElementById('dlgNm').textContent = o.name;
+      document.getElementById('dlgDm').textContent = o.dims || '';
+    } else card.hidden=true;
+    var ok=document.getElementById('dlgOk');
+    ok.textContent = o.ok || 'Confirmar';
+    ok.className   = o.danger ? 'danger' : 'primary';
+    dlgPending = onOk;
+    if(dlg.showModal) dlg.showModal(); else dlg.setAttribute('open','');
+  }
+  function hideDlg(){ if(dlg.close) dlg.close(); else dlg.removeAttribute('open'); }
+  document.getElementById('dlgNo').addEventListener('click', function(){ dlgPending=null; hideDlg(); });
+  document.getElementById('dlgOk').addEventListener('click', function(){
+    var fn=dlgPending; dlgPending=null; hideDlg(); if(fn) fn();
+  });
+  dlg.addEventListener('click', function(e){ if(e.target===dlg){ dlgPending=null; hideDlg(); } });
+  dlg.addEventListener('cancel', function(){ dlgPending=null; });
+
+  var editId=null, openedId=null;
+
   function renderPJ(){
     var s=store(), el=document.getElementById('pjList'), cur=dimsNow();
     if(!s.items.length){
@@ -1232,16 +1375,68 @@
     }
     var h='';
     for(var i=0;i<s.items.length;i++){
-      var p=s.items[i], on = cur && sameDims(p,cur);
-      h += '<div class="pj'+(on?' on':'')+'" data-id="'+escHtml(p.id)+'">'
-         + '<div style="min-width:0">'
-         + '<div class="nm">'+escHtml(p.name)+(on?'<span class="tagnow">atual</span>':'')+'</div>'
-         + '<div class="dm">'+dimStr(p)+'</div></div>'
-         + '<div class="sp"></div>'
+      var p=s.items[i], on = cur && sameDims(p,cur), id=escHtml(p.id);
+
+      if(p.id===editId){
+        h += '<div class="pj edit" data-id="'+id+'"><div class="efwrap">'
+           + '<input type="text" class="efname" maxlength="40" value="'+escHtml(p.name)+'">'
+           + (cur && !on
+               ? '<label class="efchk"><input type="checkbox" class="efdims" checked>'
+                 + 'trocar as medidas de <b>'+dimStr(p)+'</b> para as atuais, <b>'+dimStr(cur)+'</b></label>'
+               : '<div class="efchk">medidas: '+dimStr(p)+'</div>')
+           + '<div class="efbtns"><button class="primary" data-act="ok">Salvar</button>'
+           + '<button data-act="cancel">Cancelar</button></div>'
+           + '</div></div>';
+        continue;
+      }
+
+      var changed = (p.id===openedId && cur && !on);
+      h += '<div class="pj'+(on?' on':'')+(changed?' chg':'')+'" data-id="'+id+'">'
+         + '<div class="info">'
+         + '<div class="nm">'+escHtml(p.name)
+         + (on?'<span class="tagnow">atual</span>':'')
+         + (changed?'<span class="tagchg">alterado</span>':'')+'</div>'
+         + '<div class="dm">'+dimStr(p)+(changed?' → '+dimStr(cur):'')+'</div></div>'
+         + (changed ? '<button class="primary" data-act="update">Salvar alterações</button>' : '')
          + '<button data-act="open">Abrir</button>'
+         + '<button data-act="edit" title="Renomear ou trocar as medidas">✎</button>'
          + '<button data-act="del" title="Excluir">✕</button></div>';
     }
     el.innerHTML = h;
+  }
+
+  function findPJ(s,id){
+    for(var i=0;i<s.items.length;i++) if(s.items[i].id===id) return i;
+    return -1;
+  }
+  function commitEdit(row,id){
+    var s=store(), i=findPJ(s,id);
+    if(i<0){ editId=null; renderPJ(); return; }
+    var fld=row.querySelector('.efname'), chk=row.querySelector('.efdims');
+    var nm=(fld.value||'').trim();
+    if(!nm){ pjNote('O nome não pode ficar vazio.'); fld.focus(); return; }
+    for(var j=0;j<s.items.length;j++){
+      if(j!==i && s.items[j].name.toLowerCase()===nm.toLowerCase()){
+        pjNote('Já existe outro projeto com o nome "'+nm+'".'); fld.focus(); return;
+      }
+    }
+    var was=s.items[i].name;
+    s.items[i].name=nm;
+    var d=dimsNow();
+    if(chk && chk.checked && d){ s.items[i].H=d.H; s.items[i].L=d.L; s.items[i].P=d.P; s.items[i].W=d.W; }
+    s.items[i].ts=Date.now();
+    editId=null;
+    if(lsSet(LSK,s)) pjNote('Editado: '+(was!==nm ? was+' → '+nm : nm));
+    else pjNote('O navegador bloqueou o armazenamento local.');
+    renderPJ();
+  }
+  function updatePJ(id){
+    var s=store(), i=findPJ(s,id), d=dimsNow();
+    if(i<0||!d) return;
+    s.items[i].H=d.H; s.items[i].L=d.L; s.items[i].P=d.P; s.items[i].W=d.W; s.items[i].ts=Date.now();
+    if(lsSet(LSK,s)) pjNote('Medidas atualizadas em "'+s.items[i].name+'".');
+    else pjNote('O navegador bloqueou o armazenamento local.');
+    renderPJ();
   }
 
   function savePJ(){
@@ -1256,31 +1451,37 @@
                H:d.H, L:d.L, P:d.P, W:d.W, ts:Date.now() };
     if(ex>=0) s.items[ex]=item; else s.items.unshift(item);
     if(s.items.length>30) s.items.length=30;
+    openedId = item.id;
     if(lsSet(LSK,s)){ fld.value=''; pjNote((ex>=0?'Atualizado: ':'Salvo: ')+nm); }
     else pjNote('O navegador bloqueou o armazenamento local. Use Exportar .json para guardar o projeto.');
     renderPJ();
   }
   function openPJ(id){
-    var s=store();
-    for(var i=0;i<s.items.length;i++){
-      if(s.items[i].id===id){
-        var p=s.items[i];
-        inH.value=p.H; inL.value=p.L; inP.value=p.P; inW.value=p.W;
-        render(); pjNote('Aberto: '+p.name);
-        return;
-      }
-    }
+    var s=store(), i=findPJ(s,id);
+    if(i<0) return;
+    var p=s.items[i];
+    inH.value=p.H; inL.value=p.L; inP.value=p.P; inW.value=p.W;
+    openedId=id; editId=null;
+    render(); pjNote('Aberto: '+p.name);
   }
   function delPJ(id){
-    var s=store();
-    for(var i=0;i<s.items.length;i++){
-      if(s.items[i].id===id){
-        if(!window.confirm('Excluir o projeto "'+s.items[i].name+'"?')) return;
-        var nm=s.items[i].name;
-        s.items.splice(i,1); lsSet(LSK,s); renderPJ(); pjNote('Excluído: '+nm);
-        return;
-      }
-    }
+    var s=store(), i=findPJ(s,id);
+    if(i<0) return;
+    var p=s.items[i];
+    askConfirm({
+      title:'Excluir projeto',
+      text:'O projeto será removido desta lista. Não dá para desfazer.',
+      name:p.name, dims:dimStr(p),
+      ok:'Excluir', danger:true
+    }, function(){
+      var s2=store(), k=findPJ(s2,id);
+      if(k<0) return;
+      var nm=s2.items[k].name;
+      s2.items.splice(k,1);
+      if(openedId===id) openedId=null;
+      if(editId===id)   editId=null;
+      lsSet(LSK,s2); renderPJ(); pjNote('Excluído: '+nm);
+    });
   }
   function expPJ(){
     var s=store();
@@ -1329,8 +1530,21 @@
     var b = e.target.closest ? e.target.closest('button[data-act]') : null;
     if(!b) return;
     var row = b.closest('.pj'); if(!row) return;
-    var id = row.getAttribute('data-id');
-    if(b.getAttribute('data-act')==='open') openPJ(id); else delPJ(id);
+    var id = row.getAttribute('data-id'), act = b.getAttribute('data-act');
+    if(act==='open')        openPJ(id);
+    else if(act==='del')    delPJ(id);
+    else if(act==='update') updatePJ(id);
+    else if(act==='edit'){  editId=id; renderPJ();
+                            var f=document.querySelector('.pj.edit .efname');
+                            if(f){ f.focus(); f.select(); } }
+    else if(act==='cancel'){ editId=null; renderPJ(); }
+    else if(act==='ok')      commitEdit(row,id);
+  });
+  document.getElementById('pjList').addEventListener('keydown', function(e){
+    if(!e.target.classList || !e.target.classList.contains('efname')) return;
+    var row = e.target.closest('.pj'); if(!row) return;
+    if(e.key==='Enter'){ e.preventDefault(); commitEdit(row, row.getAttribute('data-id')); }
+    if(e.key==='Escape'){ e.preventDefault(); editId=null; renderPJ(); }
   });
   document.getElementById('btnExp').addEventListener('click', expPJ);
   document.getElementById('btnImp').addEventListener('click', function(){
