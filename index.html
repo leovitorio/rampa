@@ -106,9 +106,10 @@
   .efbtns{display:flex; gap:7px}
 
   /* ---- modal de confirmação ---- */
-  dialog#dlg{border:none; padding:0; background:transparent; color:var(--ink);
+  dialog#dlg, dialog#dlgEd{border:none; padding:0; background:transparent; color:var(--ink);
     width:min(430px, calc(100vw - 32px))}
-  dialog#dlg::backdrop{background:rgba(10,13,15,.58); backdrop-filter:blur(3px)}
+  dialog#dlgEd{width:min(600px, calc(100vw - 32px))}
+  dialog#dlg::backdrop, dialog#dlgEd::backdrop{background:rgba(10,13,15,.58); backdrop-filter:blur(3px)}
   .dlgbox{background:var(--surface); border:1px solid var(--line); border-radius:15px;
     padding:22px 24px 19px; box-shadow:0 20px 55px rgba(0,0,0,.3)}
   .dlgbox h3{margin:0 0 7px; font-size:17.5px; letter-spacing:-.01em}
@@ -120,12 +121,23 @@
   .dlgbtns{display:flex; gap:9px; justify-content:flex-end; margin-top:19px}
   .dlgbtns button{padding:9px 17px}
   button.danger{background:var(--dangerBg); border-color:var(--dangerBg); color:#fff}
-  dialog#dlg[open]{animation:dlgIn .17s cubic-bezier(.2,.8,.3,1)}
-  dialog#dlg[open]::backdrop{animation:bdIn .17s ease-out}
+  dialog#dlg[open], dialog#dlgEd[open]{animation:dlgIn .17s cubic-bezier(.2,.8,.3,1)}
+  dialog#dlg[open]::backdrop, dialog#dlgEd[open]::backdrop{animation:bdIn .17s ease-out}
+  .edgrid{display:grid; gap:12px; grid-template-columns:1fr; margin-top:14px}
+  @media (min-width:480px){ .edgrid{grid-template-columns:repeat(2,1fr)} }
+  .edgrid .full{grid-column:1/-1}
+  .edgrid .field input, .edgrid .field select{font-size:16px; padding:8px 10px; height:42px}
+  .edgrid .sec{grid-column:1/-1; font-size:11px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.07em; color:var(--accent); border-top:1px solid var(--line); padding-top:10px; margin-top:2px}
+  .edmsg{min-height:1.3em; font-size:13px; color:var(--bad); margin-top:10px}
+  .edinfo{font-size:12.5px; color:var(--muted); margin-top:6px; font-variant-numeric:tabular-nums}
+  .dlgbtns .grow{margin-right:auto}
+  #dlgEd .dlgbtns{flex-wrap:wrap}
+  #dlgEd .dlgbtns button{white-space:nowrap; padding:9px 14px}
   @keyframes dlgIn{from{opacity:0; transform:translateY(10px) scale(.97)}}
   @keyframes bdIn{from{opacity:0}}
   @media (prefers-reduced-motion:reduce){
-    dialog#dlg[open], dialog#dlg[open]::backdrop{animation:none}
+    dialog#dlg[open], dialog#dlg[open]::backdrop, dialog#dlgEd[open], dialog#dlgEd[open]::backdrop{animation:none}
   }
 
   /* ---- 3D ---- */
@@ -250,7 +262,7 @@
         <span class="hint">medida externa, laterais incluídas</span>
       </div>
       <div class="field" id="fE1">
-        <label for="inT">Laterais e pisos</label>
+        <label for="inT">Laterais</label>
         <select id="inT">
           <option value="6" selected>MDF 6 mm</option>
           <option value="9">MDF 9 mm</option>
@@ -259,6 +271,17 @@
           <option value="18">MDF 18 mm</option>
         </select>
         <span class="hint" id="hintT"></span>
+      </div>
+      <div class="field" id="fE3">
+        <label for="inTP">Pisos</label>
+        <select id="inTP">
+          <option value="6">MDF 6 mm</option>
+          <option value="9" selected>MDF 9 mm</option>
+          <option value="12">MDF 12 mm</option>
+          <option value="15">MDF 15 mm</option>
+          <option value="18">MDF 18 mm</option>
+        </select>
+        <span class="hint" id="hintTP"></span>
       </div>
       <div class="field" id="fE2">
         <label for="inTB">Fundo e travessas</label>
@@ -375,6 +398,53 @@
 
 </div>
 
+<dialog id="dlgEd" aria-labelledby="edTitle">
+  <form class="dlgbox" id="edForm" method="dialog" novalidate>
+    <h3 id="edTitle">Editar projeto</h3>
+    <p class="txt">Altere o nome e as medidas salvas deste projeto.</p>
+    <div class="edgrid">
+      <div class="field full">
+        <label for="edName">Nome do projeto</label>
+        <input id="edName" type="text" maxlength="40">
+      </div>
+      <div class="sec">Medidas (cm)</div>
+      <div class="field"><label for="edH">Altura da plataforma</label><input id="edH" type="number" min="25" max="95" step="1"></div>
+      <div class="field"><label for="edL">Comprimento da rampa</label><input id="edL" type="number" min="55" max="260" step="1"></div>
+      <div class="field"><label for="edP">Plataforma — profundidade</label><input id="edP" type="number" min="15" max="90" step="1"></div>
+      <div class="field"><label for="edW">Largura total</label><input id="edW" type="number" min="25" max="80" step="1"></div>
+      <div class="sec">Espessuras</div>
+      <div class="field"><label for="edT">Laterais</label><select id="edT">
+          <option value="6" selected>MDF 6 mm</option>
+          <option value="9">MDF 9 mm</option>
+          <option value="12">MDF 12 mm</option>
+          <option value="15">MDF 15 mm</option>
+          <option value="18">MDF 18 mm</option>
+      </select></div>
+      <div class="field"><label for="edTP">Pisos</label><select id="edTP">
+          <option value="6">MDF 6 mm</option>
+          <option value="9" selected>MDF 9 mm</option>
+          <option value="12">MDF 12 mm</option>
+          <option value="15">MDF 15 mm</option>
+          <option value="18">MDF 18 mm</option>
+      </select></div>
+      <div class="field"><label for="edTB">Fundo e travessas</label><select id="edTB">
+          <option value="6">MDF 6 mm</option>
+          <option value="9">MDF 9 mm</option>
+          <option value="12" selected>MDF 12 mm</option>
+          <option value="15">MDF 15 mm</option>
+          <option value="18">MDF 18 mm</option>
+      </select></div>
+    </div>
+    <div class="edinfo" id="edInfo"></div>
+    <div class="edmsg" id="edMsg" role="alert"></div>
+    <div class="dlgbtns">
+      <button type="button" id="edCur" class="grow" title="Preencher com as medidas que estão na tela agora">Usar atuais</button>
+      <button type="button" id="edNo">Cancelar</button>
+      <button type="button" id="edOk">Salvar</button>
+      <button type="button" id="edOkOpen" class="primary">Salvar e abrir</button>
+    </div>
+  </form>
+</dialog>
 <dialog id="dlg" aria-labelledby="dlgTitle">
   <div class="dlgbox">
     <h3 id="dlgTitle">Excluir projeto</h3>
@@ -395,7 +465,8 @@
   "use strict";
 
   var FONT = '"Segoe UI", Arial, system-ui, sans-serif';
-  var T  = 0.6;     // espessura das laterais e dos pisos (cm) — vem do seletor
+  var T  = 0.6;     // espessura das laterais (cm) — vem do seletor
+  var TP = 0.9;     // espessura dos pisos (cm) — vem do seletor
   var TB = 1.2;     // espessura do fundo e das travessas (cm) — vem do seletor
   var RAIL = 4;     // guia lateral acima do piso (cm)
   var SARR = 2;     // sarrafo 2x2 cm
@@ -443,7 +514,8 @@
   var cut = document.getElementById('cutsheet');
   var inH=document.getElementById('inH'), inL=document.getElementById('inL'),
       inW=document.getElementById('inW'), inP=document.getElementById('inP'),
-      inT=document.getElementById('inT'), inTB=document.getElementById('inTB');
+      inT=document.getElementById('inT'), inTP=document.getElementById('inTP'),
+      inTB=document.getElementById('inTB');
   var badge = document.getElementById('badge'), badge2 = document.getElementById('badge2');
   var last = null;
 
@@ -455,19 +527,19 @@
 
   function calc(H,L,W,P){
     /* a ponta do piso fica T/cos(ângulo) acima do chão — converge em 2 passadas */
-    var lip = T*1.1, rise, run, rad, k;
+    var lip = TP*1.1, rise, run, rad, k;
     for(k=0;k<3;k++){
       rise = H - lip;
       run  = Math.sqrt(Math.max(1, L*L - rise*rise));
       rad  = Math.atan2(rise, run);
-      lip  = T/Math.cos(rad);
+      lip  = TP/Math.cos(rad);
     }
     rise = H - lip;
     run  = Math.sqrt(Math.max(1, L*L - rise*rise));
     rad  = Math.atan2(rise, run);
-    var clear = lip + (H-lip)/3 - T/Math.cos(rad) - 1;
+    var clear = lip + (H-lip)/3 - TP/Math.cos(rad) - 1;
     return {
-      H:H, L:L, W:W, P:P, T:T, TB:TB, lip:lip,
+      H:H, L:L, W:W, P:P, T:T, TP:TP, TB:TB, lip:lip,
       rise:rise, run:run, rad:rad, deg:rad*180/Math.PI,
       deckW: W - 2*T,
       platD: P - TB,
@@ -493,27 +565,49 @@
     }
     return '';
   }
+  function matOf(pid){
+    if(pid==='A') return 'MDF '+mm(T);
+    if(pid==='B'||pid==='C') return 'MDF '+mm(TP);
+    if(pid==='D'||pid==='E') return 'MDF '+mm(TB);
+    return PCmap[pid].mat;
+  }
   function cutlist(g){
     return [
       ['A','Lateral (perfil recortado)', 2, n0(g.foot)+' × '+n0(g.totH), mm(T), 'conforme molde — corte reto de a a b'],
-      ['B','Piso da rampa', 1, n0(g.L)+' × '+n1(g.deckW), mm(T), 'encaixa entre as laterais'],
-      ['C','Piso da plataforma', 1, n1(g.platD)+' × '+n1(g.deckW), mm(T), 'encosta na face interna do fechamento D'],
+      ['B','Piso da rampa', 1, n0(g.L)+' × '+n1(g.deckW), mm(TP), 'encaixa entre as laterais'],
+      ['C','Piso da plataforma', 1, n1(g.platD)+' × '+n1(g.deckW), mm(TP), 'encosta na face interna do fechamento D'],
       ['D','Fechamento traseiro', 1, n1(g.deckW)+' × '+n0(g.totH), mm(TB), 'altura cheia, rente ao topo das laterais'],
       ['E','Travessa inferior', 2, n1(g.deckW)+' × '+n0(g.travH), mm(TB), 'a 1/3 e a 3/4 do comprimento da rampa'],
       ['F','Sarrafo de apoio da rampa', 2, n0(g.sarrR)+' × 2 × 2', 'pinus', 'centralizado na diagonal, 80% do vão'],
       ['G','Sarrafo de apoio da plataforma', 2, n0(g.sarrP)+' × 2 × 2', 'pinus', 'centralizado no trecho plano']
     ];
   }
-  /* área por espessura: finos (laterais + pisos) e grossos (fundo + travessas) */
+  /* área por espessura: laterais (T), pisos (TP) e fundo + travessas (TB) */
   function areas(g){
     return {
-      thin : (2*g.foot*g.totH + g.L*g.deckW + g.platD*g.deckW)/10000,
+      lat  : (2*g.foot*g.totH)/10000,
+      floor: (g.L*g.deckW + g.platD*g.deckW)/10000,
       thick: (g.deckW*g.totH + 2*g.deckW*g.travH)/10000
     };
   }
+  /* agrupa por espessura: se duas peças usam a mesma chapa, somam */
+  function sheetGroups(g){
+    var a=areas(g), out=[], idx={};
+    function add(t, m2, what){
+      var k=String(Math.round(t*10));
+      if(idx[k]===undefined){ idx[k]=out.length; out.push({t:t, m2:0, what:[]}); }
+      out[idx[k]].m2 += m2; out[idx[k]].what.push(what);
+    }
+    add(T,  a.lat,   'laterais');
+    add(TP, a.floor, 'pisos');
+    add(TB, a.thick, 'fundo e travessas');
+    return out;
+  }
   function areaTxt(g){
-    var a=areas(g);
-    return n1(a.thin)+' m² de '+mm(T)+' + '+n1(a.thick)+' m² de '+mm(TB);
+    return sheetGroups(g).map(function(x){ return n1(x.m2)+' m² de '+mm(x.t); }).join(' + ');
+  }
+  function thickTxt(){
+    return 'laterais '+mm(T)+', pisos '+mm(TP)+', fundo e travessas '+mm(TB);
   }
 
   /* ---------- posições dos parafusos ----------
@@ -531,14 +625,14 @@
     var i, t;
     for(i=0;i<5;i++){
       t = 0.16 + i*0.17;
-      pair(g.run*t + sn*(T+SARR/2), g.lip + (g.H-g.lip)*t - cs*(T+SARR/2), 'A');
+      pair(g.run*t + sn*(TP+SARR/2), g.lip + (g.H-g.lip)*t - cs*(TP+SARR/2), 'A');
     }
     /* lateral -> travessas E */
     var ex=[g.run/3 + TB/2, g.run*0.75 + TB/2];
     for(i=0;i<2;i++){ pair(ex[i], g.travH*0.30, 'A'); pair(ex[i], g.travH*0.72, 'A'); }
     /* lateral -> sarrafo G (plataforma) */
-    pair(g.run + g.platD*0.25, g.H-T-SARR/2, 'A');
-    pair(g.run + g.platD*0.75, g.H-T-SARR/2, 'A');
+    pair(g.run + g.platD*0.25, g.H-TP-SARR/2, 'A');
+    pair(g.run + g.platD*0.75, g.H-TP-SARR/2, 'A');
     /* lateral -> fechamento D */
     var dy=[0.12,0.38,0.64,0.88];
     for(i=0;i<4;i++) pair(g.foot-TB/2, g.totH*dy[i], 'A');
@@ -556,7 +650,7 @@
     S.push({p:[g.run+g.platD*0.25, g.H, zB], d:[0,-1,0]});
     S.push({p:[g.run+g.platD*0.75, g.H, zB], d:[0,-1,0]});
     /* fechamento D -> topo do piso C */
-    for(i=0;i<3;i++) S.push({p:[g.foot, g.H-T/2, g.W*(0.25+i*0.25)], d:[-1,0,0]});
+    for(i=0;i<3;i++) S.push({p:[g.foot, g.H-TP/2, g.W*(0.25+i*0.25)], d:[-1,0,0]});
 
     return S;
   }
@@ -668,13 +762,13 @@
     add('A', new THREE.ExtrudeGeometry(sh,{depth:T,bevelEnabled:false}), [0,0,g.W-T], 0, [0,0, g.W*1.55]);
 
     /* B — piso da rampa */
-    add('B', new THREE.BoxGeometry(g.L, T, g.deckW),
-        [topX - nx*T/2, topY - ny*T/2, g.W/2], g.rad,
+    add('B', new THREE.BoxGeometry(g.L, TP, g.deckW),
+        [topX - nx*TP/2, topY - ny*TP/2, g.W/2], g.rad,
         [nx*g.totH*0.85, ny*g.totH*0.85, 0]);
 
     /* C — piso da plataforma */
-    add('C', new THREE.BoxGeometry(g.platD, T, g.deckW),
-        [g.run+g.platD/2, g.H-T/2, g.W/2], 0, [0, g.totH*0.62, 0]);
+    add('C', new THREE.BoxGeometry(g.platD, TP, g.deckW),
+        [g.run+g.platD/2, g.H-TP/2, g.W/2], 0, [0, g.totH*0.62, 0]);
 
     /* D — fechamento traseiro (altura cheia da lateral) */
     add('D', new THREE.BoxGeometry(TB, g.totH, g.deckW),
@@ -688,13 +782,13 @@
         [e2+TB/2, g.travH/2, g.W/2], 0, [ g.foot*0.07, -g.totH*0.9, 0]);
 
     /* F — sarrafos da rampa */
-    var fx = topX - nx*(T+SARR/2), fy = topY - ny*(T+SARR/2);
+    var fx = topX - nx*(TP+SARR/2), fy = topY - ny*(TP+SARR/2);
     add('F', new THREE.BoxGeometry(g.sarrR, SARR, SARR), [fx, fy, T+SARR/2],     g.rad, [0,-g.totH*0.35,-g.W*0.95]);
     add('F', new THREE.BoxGeometry(g.sarrR, SARR, SARR), [fx, fy, g.W-T-SARR/2], g.rad, [0,-g.totH*0.35, g.W*0.95]);
 
     /* G — sarrafos da plataforma */
-    add('G', new THREE.BoxGeometry(g.sarrP, SARR, SARR), [g.run+g.platD/2, g.H-T-SARR/2, T+SARR/2],     0, [0,-g.totH*0.28,-g.W*0.72]);
-    add('G', new THREE.BoxGeometry(g.sarrP, SARR, SARR), [g.run+g.platD/2, g.H-T-SARR/2, g.W-T-SARR/2], 0, [0,-g.totH*0.28, g.W*0.72]);
+    add('G', new THREE.BoxGeometry(g.sarrP, SARR, SARR), [g.run+g.platD/2, g.H-TP-SARR/2, T+SARR/2],     0, [0,-g.totH*0.28,-g.W*0.72]);
+    add('G', new THREE.BoxGeometry(g.sarrP, SARR, SARR), [g.run+g.platD/2, g.H-TP-SARR/2, g.W-T-SARR/2], 0, [0,-g.totH*0.28, g.W*0.72]);
 
     /* H — carpete */
     add('H', new THREE.BoxGeometry(g.L, CARP, g.deckW),
@@ -944,7 +1038,7 @@
     var p = PCmap[pid];
     var q = (pid==='P') ? screwPoints(g).length : p.qty;
     el.innerHTML = '<h3>' + p.id + ' · ' + p.name + (q>1 ? ' <span style="font-weight:400;color:var(--muted)">('+q+' peças)</span>' : '') + '</h3>'
-      + '<div class="d">' + pieceDims(g,pid) + '  ·  ' + p.mat + '</div>'
+      + '<div class="d">' + pieceDims(g,pid) + '  ·  ' + matOf(pid) + '</div>'
       + '<p>' + WHERE[pid] + '</p>';
   }
   function buildChips(){
@@ -1064,7 +1158,7 @@
     o.push('<rect x="0" y="0" width="'+SW+'" height="'+SH+'" fill="'+C.paper+'"/>');
 
     o.push('<text x="40" y="46" font-size="25" font-weight="700" fill="'+C.txt+'">Rampa com plataforma para cachorro — estrutura autoportante</text>');
-    o.push('<text x="40" y="74" font-size="15" fill="'+C.mut+'">Plataforma '+n0(g.H)+' cm de altura · rampa '+n0(g.L)+' cm · plataforma '+n0(g.P)+' cm · largura total '+n0(g.W)+' cm · inclinação '+n0(g.deg)+'° · laterais e pisos em '+mm(T)+', fundo e travessas em '+mm(TB)+'</text>');
+    o.push('<text x="40" y="74" font-size="15" fill="'+C.mut+'">Plataforma '+n0(g.H)+' cm de altura · rampa '+n0(g.L)+' cm · plataforma '+n0(g.P)+' cm · largura total '+n0(g.W)+' cm · inclinação '+n0(g.deg)+'° · '+thickTxt()+'</text>');
     o.push('<text x="1860" y="46" text-anchor="end" font-size="13" fill="'+C.mut+'">medidas em centímetros</text>');
     o.push('<text x="1860" y="68" text-anchor="end" font-size="13" fill="'+C.mut+'">desenho fora de escala</text>');
     o.push('<line x1="40" y1="88" x2="1860" y2="88" stroke="'+C.frame+'" stroke-width="2"/>');
@@ -1079,7 +1173,7 @@
       var yF = py+400, toeX = px+110;
       var platX = toeX + g.run*s, endX = toeX + g.foot*s;
       var yDeck = yF - g.H*s, yRail = yF - g.totH*s, yToe = yF - g.toeH*s, yLip = yF - g.lip*s;
-      var ts = T*s, tbs = TB*s;
+      var ts = TP*s, tbs = TB*s;   /* ts = espessura do piso */
 
       o.push('<rect x="'+(px+20)+'" y="'+yF+'" width="'+(pw-40)+'" height="14" fill="#E7DFD2"/>');
       o.push('<line x1="'+(px+20)+'" y1="'+yF+'" x2="'+(px+pw-20)+'" y2="'+yF+'" stroke="#B9B0A3" stroke-width="2.5"/>');
@@ -1135,7 +1229,7 @@
     /* ---------- P2 molde da lateral ---------- */
     (function(){
       var px=40, py=622, pw=1140, ph=430;
-      o.push(panel(px,py,pw,ph,'2 · MOLDE DA LATERAL — 2 peças iguais, chapa 18 mm · ⊕ = furo de parafuso'));
+      o.push(panel(px,py,pw,ph,'2 · MOLDE DA LATERAL — 2 peças iguais, MDF '+mm(T)+' · ⊕ = furo de parafuso'));
 
       var s = Math.min(560/g.foot, 215/g.totH);
       var x0 = px+150, yb = py+330;
@@ -1206,7 +1300,7 @@
       o.push(dimH(x0, x0+w1, y0+h+40, n0(g.L)+' cm', y0+h+12));
       o.push(dimH(x2, x2+w2, y0+h+40, n1(g.platD)+' cm', y0+h+12));
       o.push(dimV(x0-38, y0, y0+h, n1(g.deckW)+' cm', x0-6, -1));
-      o.push(note(px+20, py+ph-42, 'Carpete antiderrapante colado sobre os dois pisos.', 'start', 13));
+      o.push(note(px+20, py+ph-42, 'MDF '+mm(TP)+' · carpete antiderrapante colado sobre os dois.', 'start', 13));
       o.push(note(px+20, py+ph-23, 'Plataforma: piso de '+n1(g.platD)+' cm — os outros '+n1(TB)+' cm', 'start', 13));
       o.push(note(px+20, py+ph-6, 'são a espessura do fechamento D.', 'start', 13));
     })();
@@ -1216,33 +1310,33 @@
       var px=1200, py=412, pw=660, ph=300;
       o.push(panel(px,py,pw,ph,'4 · CORTE TRANSVERSAL'));
       var s = Math.min(230/g.W, 7);
-      var x0 = px + 86, yD = py+152, ts=T*s;
+      var x0 = px + 86, yD = py+152, tl=T*s, tp=TP*s, Ws=g.W*s;
 
-      o.push('<rect x="'+f(x0)+'" y="'+f(yD-RAIL*s)+'" width="'+f(ts)+'" height="'+f((RAIL+12)*s)+'" fill="'+C.face+'" stroke="'+C.faceLine+'" stroke-width="1.6"/>');
-      o.push('<rect x="'+f(x0+g.W*s-ts)+'" y="'+f(yD-RAIL*s)+'" width="'+f(ts)+'" height="'+f((RAIL+12)*s)+'" fill="'+C.face+'" stroke="'+C.faceLine+'" stroke-width="1.6"/>');
-      o.push('<rect x="'+f(x0+ts)+'" y="'+f(yD)+'" width="'+f(g.deckW*s)+'" height="'+f(ts)+'" fill="'+C.wood+'" stroke="'+C.woodLine+'" stroke-width="1.6"/>');
-      o.push('<rect x="'+f(x0+ts)+'" y="'+f(yD-0.6*s)+'" width="'+f(g.deckW*s)+'" height="'+f(0.6*s+1)+'" fill="'+C.grip+'"/>');
-      o.push('<rect x="'+f(x0+ts)+'" y="'+f(yD+ts)+'" width="'+f(SARR*s)+'" height="'+f(SARR*s)+'" fill="#D9B98C" stroke="'+C.woodLine+'" stroke-width="1.4"/>');
-      o.push('<rect x="'+f(x0+g.W*s-ts-SARR*s)+'" y="'+f(yD+ts)+'" width="'+f(SARR*s)+'" height="'+f(SARR*s)+'" fill="#D9B98C" stroke="'+C.woodLine+'" stroke-width="1.4"/>');
+    o.push('<rect x="'+f(x0)+'" y="'+f(yD-RAIL*s)+'" width="'+f(tl)+'" height="'+f((RAIL+12)*s)+'" fill="'+C.face+'" stroke="'+C.faceLine+'" stroke-width="1.6"/>');
+    o.push('<rect x="'+f(x0+Ws-tl)+'" y="'+f(yD-RAIL*s)+'" width="'+f(tl)+'" height="'+f((RAIL+12)*s)+'" fill="'+C.face+'" stroke="'+C.faceLine+'" stroke-width="1.6"/>');
+    o.push('<rect x="'+f(x0+tl)+'" y="'+f(yD)+'" width="'+f(g.deckW*s)+'" height="'+f(tp)+'" fill="'+C.wood+'" stroke="'+C.woodLine+'" stroke-width="1.6"/>');
+    o.push('<rect x="'+f(x0+tl)+'" y="'+f(yD-0.6*s)+'" width="'+f(g.deckW*s)+'" height="'+f(0.6*s+1)+'" fill="'+C.grip+'"/>');
+    o.push('<rect x="'+f(x0+tl)+'" y="'+f(yD+tp)+'" width="'+f(SARR*s)+'" height="'+f(SARR*s)+'" fill="#D9B98C" stroke="'+C.woodLine+'" stroke-width="1.4"/>');
+    o.push('<rect x="'+f(x0+Ws-tl-SARR*s)+'" y="'+f(yD+tp)+'" width="'+f(SARR*s)+'" height="'+f(SARR*s)+'" fill="#D9B98C" stroke="'+C.woodLine+'" stroke-width="1.4"/>');
 
-      o.push(dimH(x0, x0+g.W*s, yD+12*s+40, n0(g.W)+' cm', yD+12*s+8));
-      o.push(dimH(x0+ts, x0+g.W*s-ts, yD-RAIL*s-26, n1(g.deckW)+' cm', yD-RAIL*s-4));
-      o.push(dimV(x0-32, yD-RAIL*s, yD, '4', x0-4, -1));
+    o.push(dimH(x0, x0+Ws, yD+12*s+40, n0(g.W)+' cm', yD+12*s+8));
+    o.push(dimH(x0+tl, x0+Ws-tl, yD-RAIL*s-26, n1(g.deckW)+' cm', yD-RAIL*s-4));
+    o.push(dimV(x0-32, yD-RAIL*s, yD, '4', x0-4, -1));
 
-      /* parafusos no corte */
-      var scz = [x0+ts/2, x0+g.W*s-ts/2], scy = yD+ts+SARR*s/2;
-      for (var q=0;q<2;q++){
-        var sgn = q? -1 : 1, hx = (q? x0+g.W*s : x0);
-        o.push('<line x1="'+f(hx)+'" y1="'+f(scy)+'" x2="'+f(hx+sgn*ts*1.9)+'" y2="'+f(scy)+'" stroke="#7E868C" stroke-width="3.4"/>');
-        o.push('<circle cx="'+f(hx)+'" cy="'+f(scy)+'" r="3.4" fill="#9AA3A9" stroke="#5E6B73" stroke-width="1"/>');
-      }
-      o.push('<line x1="'+f(scz[0])+'" y1="'+f(yD-2)+'" x2="'+f(scz[0])+'" y2="'+f(yD+ts+SARR*s*0.8)+'" stroke="#7E868C" stroke-width="3.4"/>');
-      o.push('<circle cx="'+f(scz[0])+'" cy="'+f(yD-2)+'" r="3.4" fill="#9AA3A9" stroke="#5E6B73" stroke-width="1"/>');
-      o.push('<line x1="'+f(scz[1])+'" y1="'+f(yD-2)+'" x2="'+f(scz[1])+'" y2="'+f(yD+ts+SARR*s*0.8)+'" stroke="#7E868C" stroke-width="3.4"/>');
-      o.push('<circle cx="'+f(scz[1])+'" cy="'+f(yD-2)+'" r="3.4" fill="#9AA3A9" stroke="#5E6B73" stroke-width="1"/>');
+    /* parafusos no corte */
+    var scz = [x0+tl+SARR*s/2, x0+Ws-tl-SARR*s/2], scy = yD+tp+SARR*s/2;
+    for (var q=0;q<2;q++){
+      var sgn = q? -1 : 1, hx = (q? x0+Ws : x0);
+      o.push('<line x1="'+f(hx)+'" y1="'+f(scy)+'" x2="'+f(hx+sgn*(tl+SARR*s*0.8))+'" y2="'+f(scy)+'" stroke="#7E868C" stroke-width="3.4"/>');
+      o.push('<circle cx="'+f(hx)+'" cy="'+f(scy)+'" r="3.4" fill="#9AA3A9" stroke="#5E6B73" stroke-width="1"/>');
+    }
+    for (q=0;q<2;q++){
+      o.push('<line x1="'+f(scz[q])+'" y1="'+f(yD-2)+'" x2="'+f(scz[q])+'" y2="'+f(yD+tp+SARR*s*0.8)+'" stroke="#7E868C" stroke-width="3.4"/>');
+      o.push('<circle cx="'+f(scz[q])+'" cy="'+f(yD-2)+'" r="3.4" fill="#9AA3A9" stroke="#5E6B73" stroke-width="1"/>');
+    }
 
-      var ntx = px+400;
-      o.push(note(ntx, py+106, 'lateral '+mm(T)+' · piso '+mm(T), 'start', 13));
+    var ntx = px+400;
+      o.push(note(ntx, py+106, 'lateral '+mm(T)+' · piso '+mm(TP), 'start', 13));
       o.push(note(ntx, py+130, 'sarrafos 2 × 2 cm sustentam o piso', 'start', 13));
       o.push(note(ntx, py+154, 'guia de 4 cm acima do piso', 'start', 13));
       o.push(note(ntx, py+186, 'Parafusos: pela face externa da', 'start', 13));
@@ -1295,8 +1389,8 @@
         {c:'A', n:'Lateral',               q:2, w:g.foot,  h:g.totH,  e:'MDF '+mm(T)+' · recorte', lat:true},
         {c:'D', n:'Fechamento traseiro',   q:1, w:g.deckW, h:g.totH,  e:'MDF '+mm(TB), fill:'#E6CDA4'},
         {c:'E', n:'Travessa inferior',     q:2, w:g.deckW, h:g.travH, e:'MDF '+mm(TB), fill:'#E6CDA4'},
-        {c:'B', n:'Piso da rampa',         q:1, w:g.L,     h:g.deckW, e:'MDF '+mm(T),  fill:'#DCC39A'},
-        {c:'C', n:'Piso da plataforma',    q:1, w:g.platD, h:g.deckW, e:'MDF '+mm(T),  fill:'#DCC39A'},
+        {c:'B', n:'Piso da rampa',         q:1, w:g.L,     h:g.deckW, e:'MDF '+mm(TP), fill:'#DCC39A'},
+        {c:'C', n:'Piso da plataforma',    q:1, w:g.platD, h:g.deckW, e:'MDF '+mm(TP), fill:'#DCC39A'},
         {c:'F', n:'Sarrafo da rampa',      q:2, w:g.sarrR, h:SARR,    e:'pinus 2 × 2 cm', fill:'#F0DDB4'},
         {c:'G', n:'Sarrafo da plataforma', q:2, w:g.sarrP, h:SARR,    e:'pinus 2 × 2 cm', fill:'#F0DDB4'}
       ];
@@ -1332,7 +1426,7 @@
     /* cabeçalho */
     o.push('<text x="60" y="52" font-size="26" font-weight="700" fill="'+C.txt+'">Plano de corte — rampa com plataforma para cachorro</text>');
     o.push('<text x="60" y="80" font-size="15" fill="'+C.mut+'">Peças desenhadas na mesma escala · medidas em centímetros · '
-      + 'MDF '+mm(T)+' (laterais e pisos) e MDF '+mm(TB)+' (fundo e travessas)</text>');
+      + 'MDF: '+thickTxt()+'</text>');
     o.push('<text x="1840" y="52" text-anchor="end" font-size="14" fill="'+C.mut+'">Plataforma '+n0(g.H)+' cm · rampa '+n0(g.L)+' cm · largura '+n0(g.W)+' cm</text>');
     o.push('<text x="1840" y="76" text-anchor="end" font-size="14" fill="'+C.mut+'">Inclinação '+n0(g.deg)+'° · ocupa '+n0(g.foot)+' cm de piso</text>');
     o.push('<line x1="60" y1="98" x2="1840" y2="98" stroke="'+C.frame+'" stroke-width="2"/>');
@@ -1398,13 +1492,12 @@
       var qx=1180, qw=660;
       o.push('<rect x="'+qx+'" y="'+ty+'" width="'+qw+'" height="'+th+'" rx="10" fill="'+C.head+'" stroke="'+C.frame+'" stroke-width="1.5"/>');
       o.push('<text x="'+(qx+24)+'" y="'+(ty+34)+'" font-size="17" font-weight="700" fill="'+C.txt+'">Resumo do pedido</text>');
-      var ln=[
-        ['MDF '+mm(T)+' — laterais e pisos', 1],
-        [n1(ar.thin)+' m²  ·  uma chapa de 2,75 × 1,83 m atende', 0],
-        ['', 0],
-        ['MDF '+mm(TB)+' — fundo e travessas', 1],
-        [n1(ar.thick)+' m²  ·  cabe no retalho de uma chapa', 0],
-        ['', 0],
+      var ln=[], sg=sheetGroups(g);
+      for(var z=0; z<sg.length; z++){
+        ln.push(['MDF '+mm(sg[z].t)+' — '+sg[z].what.join(', '), 1]);
+        ln.push([n1(sg[z].m2)+' m²  ·  '+(sg[z].m2>3.5 ? 'mais de uma chapa de 2,75 × 1,83 m' : (sg[z].m2>1 ? 'uma chapa de 2,75 × 1,83 m atende' : 'cabe no retalho de uma chapa')), 0]);
+      }
+      ln = ln.concat([
         ['Sarrafo de pinus 2 × 2 cm', 1],
         ['2 × '+n0(g.sarrR)+' cm  +  2 × '+n0(g.sarrP)+' cm', 0],
         ['', 0],
@@ -1412,7 +1505,7 @@
         ['A peça A é a única com recorte; as demais são retângulos.', 0],
         ['O piso B tem '+n0(g.L)+' cm, mais que os '+n0(g.run)+' cm que a rampa', 0],
         ['ocupa no chão — é a diagonal, não é engano de medida.', 0]
-      ];
+      ]);
       for(var i=0;i<ln.length;i++){
         if(!ln[i][0]) continue;
         o.push('<text x="'+(qx+24)+'" y="'+(ty+74+i*23)+'" font-size="13.5" fill="'+(ln[i][1]?C.txt:C.mut)+'"'
@@ -1428,21 +1521,25 @@
      =================================================================== */
   function render(){
     T  = clamp(inT.value, 6, 18)/10;
+    TP = clamp(inTP.value, 6, 18)/10;
     TB = clamp(inTB.value, 6, 18)/10;
 
     var H=clamp(inH.value,25,95), W=clamp(inW.value,25,80),
         L=clamp(inL.value,55,260), P=clamp(inP.value,15,90);
 
     document.getElementById('hintT').textContent  = T<=0.9
-      ? 'leve e fácil de curvar — não recebe parafuso na borda'
+      ? 'leve, mas flexiona em rampas longas'
       : 'firme, aceita parafuso na borda';
+    document.getElementById('hintTP').textContent = TP<=0.6
+      ? 'fino — pode ceder com o peso; prefira 9 mm ou mais'
+      : 'firme para pisar';
     document.getElementById('hintTB').textContent = TB>=1.2
       ? 'é onde os parafusos das laterais ancoram'
       : 'fino demais para ancorar parafuso — use 12 mm ou mais';
 
     document.getElementById('hintL').textContent = 'sugestão: ' + Math.round(H*2.2) + ' a ' + Math.round(H*2.6) + ' cm';
 
-    var minL = Math.ceil((H - T*1.1)*1.08);
+    var minL = Math.ceil((H - TP*1.1)*1.08);
     if (L <= minL){
       badge.className='badge bad';
       badge.textContent='O comprimento da rampa precisa ser maior que a altura: use pelo menos '+Math.max(minL+1, Math.round(H*1.6))+' cm.';
@@ -1476,15 +1573,19 @@
     document.getElementById('cutBody').innerHTML = tb;
     var ar = areas(g);
     document.getElementById('chapa').innerHTML =
-      '<small>Chapa necessária: <b>'+n1(ar.thin)+' m² de '+mm(T)+'</b> (laterais e pisos) e '
-      + '<b>'+n1(ar.thick)+' m² de '+mm(TB)+'</b> (fundo e travessas). '
-      + 'Uma chapa inteira de cada (2,75 × 1,83 m) sobra bastante — peça o retalho de volta.</small>';
+      '<small>Chapa necessária: '
+      + sheetGroups(g).map(function(x){ return '<b>'+n1(x.m2)+' m² de '+mm(x.t)+'</b> ('+x.what.join(', ')+')'; }).join(', ')
+      + '. Uma chapa inteira de cada espessura (2,75 × 1,83 m) sobra bastante — peça o retalho de volta.</small>';
 
     /* aviso estrutural dependente da espessura */
     if (T <= 0.9 && g.foot > 110){
       badge2.className='badge warn';
       badge2.textContent='Lateral de '+n0(g.foot)+' cm em '+mm(T)+': vai flexionar. Cole bem as travessas e '
         + 'considere uma terceira no meio da rampa, ou suba as laterais para 9–12 mm.';
+    } else if (TP <= 0.6 && g.deckW > 34){
+      badge2.className='badge warn';
+      badge2.textContent='Piso de '+mm(TP)+' com '+n1(g.deckW)+' cm de vão entre os sarrafos: vai ceder sob o peso. '
+        + 'Use 9 mm ou mais nos pisos.';
     } else if (TB < 1.2){
       badge2.className='badge warn';
       badge2.textContent='O fundo e as travessas em '+mm(TB)+' não seguram parafuso na borda. '
@@ -1500,7 +1601,7 @@
       + '<li>Cola branca para madeira</li>'
       + '<li>Fita de borda ou tinta/verniz à base de água <small>(atóxico, seguro para animais)</small></li>';
 
-    var recSarr = RAIL*Math.cos(g.rad) + g.T;   /* recuo perpendicular da aresta a–b ao topo do sarrafo */
+    var recSarr = RAIL*Math.cos(g.rad) + g.TP;   /* recuo perpendicular da aresta a–b ao topo do sarrafo */
     document.getElementById('steps').innerHTML =
       '<li>Na face interna de cada lateral <b>A</b>, risque uma linha paralela à aresta inclinada a–b, '
       + 'recuada <b>'+n1(recSarr)+' cm</b> dela (medidos perpendicularmente à aresta). '
@@ -1524,7 +1625,7 @@
 
     if (V.sel) select(V.sel); else showInfo(null);
 
-    lsSet(LSL, {H:g.H, L:g.L, P:g.P, W:g.W, T:T*10, TB:TB*10});
+    lsSet(LSL, {H:g.H, L:g.L, P:g.P, W:g.W, T:Math.round(T*10), TP:Math.round(TP*10), TB:Math.round(TB*10)});
     renderPJ();
   }
 
@@ -1563,7 +1664,7 @@
   document.getElementById('btnCopy').addEventListener('click', function(){
     var g=last, rows=cutlist(g);
     var txt='RAMPA COM PLATAFORMA PARA CACHORRO — LISTA DE CORTE\n'
-      + 'MDF '+mm(T)+' (laterais e pisos) e MDF '+mm(TB)+' (fundo e travessas) — medidas em cm\n'
+      + 'MDF: '+thickTxt()+' — medidas em cm\n'
       + 'Altura da plataforma '+n0(g.H)+' | rampa '+n0(g.L)+' | plataforma '+n0(g.P)+' | largura total '+n0(g.W)+'\n\n';
     for (var i=0;i<rows.length;i++){
       txt += rows[i][0]+') '+rows[i][1]+' — '+rows[i][2]+' un — '+rows[i][3]+' cm — '+rows[i][4]
@@ -1571,7 +1672,7 @@
     }
     txt += '\nA peca A tem recorte: retangulo de '+n0(g.foot)+' x '+n0(g.totH)+' cm, com '+n0(g.toeH)
          + ' cm de altura numa ponta e corte reto subindo ate a altura total a '+n0(g.run)+' cm dessa ponta.\n'
-         + 'Chapa: '+n1(areas(g).thin)+' m2 de '+mm(T)+' e '+n1(areas(g).thick)+' m2 de '+mm(TB)+'.\n';
+         + 'Chapa: '+areaTxt(g).replace(/m²/g,'m2')+'.\n';
     var nt=document.getElementById('copyNote');
     if (navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(txt).then(function(){ nt.textContent='Copiado.'; },
@@ -1623,14 +1724,19 @@
   function lsGet(k){ try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch(e){ return null; } }
   function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
   function store(){ var s=lsGet(LSK); if(!s||!s.items||!s.items.length&&!Array.isArray(s.items)) s={v:1,items:[]}; if(!Array.isArray(s.items)) s.items=[]; return s; }
-  function dimsNow(){ return last ? {H:last.H, L:last.L, P:last.P, W:last.W, T:T*10, TB:TB*10} : null; }
+  function dimsNow(){ return last ? {H:last.H, L:last.L, P:last.P, W:last.W,
+    T:Math.round(T*10), TP:Math.round(TP*10), TB:Math.round(TB*10)} : null; }
+  /* projetos antigos tinham uma espessura só para laterais e pisos */
+  function tOf(p){ return p.T||18; }
+  function tpOf(p){ return p.TP||p.T||18; }
+  function tbOf(p){ return p.TB||18; }
   function dimStr(d){
     return n0(d.H)+' · '+n0(d.L)+' · '+n0(d.P)+' · '+n0(d.W)+' cm'
-         + (d.T ? '  ·  '+n0(d.T)+'/'+n0(d.TB)+' mm' : '');
+         + (d.T ? '  ·  '+n0(tOf(d))+'/'+n0(tpOf(d))+'/'+n0(tbOf(d))+' mm' : '');
   }
   function sameDims(a,b){
     return a.H===b.H && a.L===b.L && a.P===b.P && a.W===b.W
-        && (a.T||18)===(b.T||18) && (a.TB||18)===(b.TB||18);
+        && tOf(a)===tOf(b) && tpOf(a)===tpOf(b) && tbOf(a)===tbOf(b);
   }
   function pjNote(t){ document.getElementById('pjNote').innerHTML = t ? '<small>'+escHtml(t)+'</small>' : ''; }
 
@@ -1659,7 +1765,7 @@
   dlg.addEventListener('click', function(e){ if(e.target===dlg){ dlgPending=null; hideDlg(); } });
   dlg.addEventListener('cancel', function(){ dlgPending=null; });
 
-  var editId=null, openedId=null;
+  var openedId=null;
 
   function renderPJ(){
     var s=store(), el=document.getElementById('pjList'), cur=dimsNow();
@@ -1672,19 +1778,6 @@
     for(var i=0;i<s.items.length;i++){
       var p=s.items[i], on = cur && sameDims(p,cur), id=escHtml(p.id);
 
-      if(p.id===editId){
-        h += '<div class="pj edit" data-id="'+id+'"><div class="efwrap">'
-           + '<input type="text" class="efname" maxlength="40" value="'+escHtml(p.name)+'">'
-           + (cur && !on
-               ? '<label class="efchk"><input type="checkbox" class="efdims" checked>'
-                 + 'trocar as medidas de <b>'+dimStr(p)+'</b> para as atuais, <b>'+dimStr(cur)+'</b></label>'
-               : '<div class="efchk">medidas: '+dimStr(p)+'</div>')
-           + '<div class="efbtns"><button class="primary" data-act="ok">Salvar</button>'
-           + '<button data-act="cancel">Cancelar</button></div>'
-           + '</div></div>';
-        continue;
-      }
-
       var changed = (p.id===openedId && cur && !on);
       h += '<div class="pj'+(on?' on':'')+(changed?' chg':'')+'" data-id="'+id+'">'
          + '<div class="info">'
@@ -1694,7 +1787,7 @@
          + '<div class="dm">'+dimStr(p)+(changed?' → '+dimStr(cur):'')+'</div></div>'
          + (changed ? '<button class="primary" data-act="update">Salvar alterações</button>' : '')
          + '<button data-act="open">Abrir</button>'
-         + '<button data-act="edit" title="Renomear ou trocar as medidas">✎</button>'
+         + '<button data-act="edit" title="Editar nome e medidas">✎</button>'
          + '<button data-act="del" title="Excluir">✕</button></div>';
     }
     el.innerHTML = h;
@@ -1704,31 +1797,100 @@
     for(var i=0;i<s.items.length;i++) if(s.items[i].id===id) return i;
     return -1;
   }
-  function commitEdit(row,id){
+  /* ---------- modal de edição ---------- */
+  var dlgEd=document.getElementById('dlgEd'), edId=null;
+  var ED={ name:document.getElementById('edName'),
+           H:document.getElementById('edH'), L:document.getElementById('edL'),
+           P:document.getElementById('edP'), W:document.getElementById('edW'),
+           T:document.getElementById('edT'), TP:document.getElementById('edTP'),
+           TB:document.getElementById('edTB') };
+  var EDLIM={ H:[25,95,'Altura da plataforma'], L:[55,260,'Comprimento da rampa'],
+              P:[15,90,'Profundidade da plataforma'], W:[25,80,'Largura total'] };
+  function edMsg(t){ document.getElementById('edMsg').textContent = t||''; }
+  function edFill(d){
+    ED.H.value=d.H; ED.L.value=d.L; ED.P.value=d.P; ED.W.value=d.W;
+    ED.T.value=String(tOf(d)); ED.TP.value=String(tpOf(d)); ED.TB.value=String(tbOf(d));
+    edPreview();
+  }
+  function edRead(){
+    var d={}, k, v;
+    for(k in EDLIM){
+      v=parseFloat(ED[k].value);
+      if(isNaN(v)) return {err:EDLIM[k][2]+': informe um número.', fld:ED[k]};
+      if(v<EDLIM[k][0]||v>EDLIM[k][1]) return {err:EDLIM[k][2]+': use de '+EDLIM[k][0]+' a '+EDLIM[k][1]+' cm.', fld:ED[k]};
+      d[k]=Math.round(v);
+    }
+    d.T=parseInt(ED.T.value,10); d.TP=parseInt(ED.TP.value,10); d.TB=parseInt(ED.TB.value,10);
+    var minL=Math.ceil((d.H - d.TP/10*1.1)*1.08);
+    if(d.L<=minL) return {err:'O comprimento da rampa precisa ser maior que '+minL+' cm para essa altura.', fld:ED.L};
+    return {d:d};
+  }
+  function edPreview(){
+    var r=edRead(), el=document.getElementById('edInfo');
+    if(r.err){ el.textContent=''; return; }
+    var d=r.d, rise=d.H-d.TP/10*1.1, run=Math.sqrt(Math.max(1,d.L*d.L-rise*rise));
+    var deg=Math.atan2(rise,run)*180/Math.PI;
+    el.textContent='Inclinação ≈ '+n0(deg)+'° · ocupa ≈ '+n0(run+d.P)+' cm de piso · altura total '+n0(d.H+RAIL)+' cm';
+    edMsg('');
+  }
+  function openEdit(id){
     var s=store(), i=findPJ(s,id);
-    if(i<0){ editId=null; renderPJ(); return; }
-    var fld=row.querySelector('.efname'), chk=row.querySelector('.efdims');
-    var nm=(fld.value||'').trim();
-    if(!nm){ pjNote('O nome não pode ficar vazio.'); fld.focus(); return; }
+    if(i<0) return;
+    var p=s.items[i];
+    edId=id;
+    document.getElementById('edTitle').textContent='Editar projeto';
+    ED.name.value=p.name;
+    edFill(p);
+    edMsg('');
+    document.getElementById('edCur').disabled = !last;
+    if(dlgEd.showModal) dlgEd.showModal(); else dlgEd.setAttribute('open','');
+    setTimeout(function(){ ED.name.focus(); ED.name.select(); }, 30);
+  }
+  function hideEd(){ edId=null; if(dlgEd.close) dlgEd.close(); else dlgEd.removeAttribute('open'); }
+  function commitEdit(andOpen){
+    var id=edId, s=store(), i=findPJ(s,id);
+    if(i<0){ hideEd(); renderPJ(); return; }
+    var nm=(ED.name.value||'').trim();
+    if(!nm){ edMsg('O nome não pode ficar vazio.'); ED.name.focus(); return; }
     for(var j=0;j<s.items.length;j++){
       if(j!==i && s.items[j].name.toLowerCase()===nm.toLowerCase()){
-        pjNote('Já existe outro projeto com o nome "'+nm+'".'); fld.focus(); return;
+        edMsg('Já existe outro projeto com o nome "'+nm+'".'); ED.name.focus(); return;
       }
     }
-    var was=s.items[i].name;
+    var r=edRead();
+    if(r.err){ edMsg(r.err); r.fld.focus(); return; }
+    var was=s.items[i].name, d=r.d;
     s.items[i].name=nm;
-    var d=dimsNow();
-    if(chk && chk.checked && d){ s.items[i].H=d.H; s.items[i].L=d.L; s.items[i].P=d.P; s.items[i].W=d.W; }
+    s.items[i].H=d.H; s.items[i].L=d.L; s.items[i].P=d.P; s.items[i].W=d.W;
+    s.items[i].T=d.T; s.items[i].TP=d.TP; s.items[i].TB=d.TB;
     s.items[i].ts=Date.now();
-    editId=null;
-    if(lsSet(LSK,s)) pjNote('Editado: '+(was!==nm ? was+' → '+nm : nm));
+    var ok=lsSet(LSK,s);
+    hideEd();
+    if(andOpen){ openPJ(id); }
+    else renderPJ();
+    if(ok) pjNote('Editado: '+(was!==nm ? was+' → '+nm : nm)+(andOpen?' (aberto)':''));
     else pjNote('O navegador bloqueou o armazenamento local.');
-    renderPJ();
   }
+  document.getElementById('edNo').addEventListener('click', hideEd);
+  document.getElementById('edOk').addEventListener('click', function(){ commitEdit(false); });
+  document.getElementById('edOkOpen').addEventListener('click', function(){ commitEdit(true); });
+  document.getElementById('edCur').addEventListener('click', function(){
+    var d=dimsNow(); if(d) edFill(d);
+  });
+  document.getElementById('edForm').addEventListener('submit', function(e){ e.preventDefault(); commitEdit(false); });
+  document.getElementById('edForm').addEventListener('input', edPreview);
+  document.getElementById('edForm').addEventListener('change', edPreview);
+  document.getElementById('edForm').addEventListener('keydown', function(e){
+    if(e.key==='Enter' && e.target.tagName==='INPUT'){ e.preventDefault(); commitEdit(false); }
+  });
+  dlgEd.addEventListener('click', function(e){ if(e.target===dlgEd) hideEd(); });
+  dlgEd.addEventListener('cancel', function(){ edId=null; });
+
   function updatePJ(id){
     var s=store(), i=findPJ(s,id), d=dimsNow();
     if(i<0||!d) return;
-    s.items[i].H=d.H; s.items[i].L=d.L; s.items[i].P=d.P; s.items[i].W=d.W; s.items[i].ts=Date.now();
+    s.items[i].H=d.H; s.items[i].L=d.L; s.items[i].P=d.P; s.items[i].W=d.W;
+    s.items[i].T=d.T; s.items[i].TP=d.TP; s.items[i].TB=d.TB; s.items[i].ts=Date.now();
     if(lsSet(LSK,s)) pjNote('Medidas atualizadas em "'+s.items[i].name+'".');
     else pjNote('O navegador bloqueou o armazenamento local.');
     renderPJ();
@@ -1743,7 +1905,7 @@
       if(s.items[i].name.toLowerCase()===nm.toLowerCase()) ex=i;
     }
     var item={ id:(ex>=0 ? s.items[ex].id : 'p'+Date.now()), name:nm,
-               H:d.H, L:d.L, P:d.P, W:d.W, T:d.T, TB:d.TB, ts:Date.now() };
+               H:d.H, L:d.L, P:d.P, W:d.W, T:d.T, TP:d.TP, TB:d.TB, ts:Date.now() };
     if(ex>=0) s.items[ex]=item; else s.items.unshift(item);
     if(s.items.length>30) s.items.length=30;
     openedId = item.id;
@@ -1756,8 +1918,8 @@
     if(i<0) return;
     var p=s.items[i];
     inH.value=p.H; inL.value=p.L; inP.value=p.P; inW.value=p.W;
-    inT.value = String(p.T||18); inTB.value = String(p.TB||18);
-    openedId=id; editId=null;
+    inT.value = String(tOf(p)); inTP.value = String(tpOf(p)); inTB.value = String(tbOf(p));
+    openedId=id;
     render(); pjNote('Aberto: '+p.name);
   }
   function delPJ(id){
@@ -1775,7 +1937,6 @@
       var nm=s2.items[k].name;
       s2.items.splice(k,1);
       if(openedId===id) openedId=null;
-      if(editId===id)   editId=null;
       lsSet(LSK,s2); renderPJ(); pjNote('Excluído: '+nm);
     });
   }
@@ -1808,7 +1969,7 @@
         }
         if(dup) continue;
         s.items.push({ id:'p'+Date.now()+'_'+add, name:String(p.name||'Sem nome').slice(0,40),
-                       H:p.H, L:p.L, P:p.P, W:p.W, T:p.T||18, TB:p.TB||18, ts:p.ts||Date.now() });
+                       H:p.H, L:p.L, P:p.P, W:p.W, T:tOf(p), TP:tpOf(p), TB:tbOf(p), ts:p.ts||Date.now() });
         add++;
       }
       if(add) lsSet(LSK,s);
@@ -1830,18 +1991,9 @@
     if(act==='open')        openPJ(id);
     else if(act==='del')    delPJ(id);
     else if(act==='update') updatePJ(id);
-    else if(act==='edit'){  editId=id; renderPJ();
-                            var f=document.querySelector('.pj.edit .efname');
-                            if(f){ f.focus(); f.select(); } }
-    else if(act==='cancel'){ editId=null; renderPJ(); }
-    else if(act==='ok')      commitEdit(row,id);
+    else if(act==='edit')   openEdit(id);
   });
-  document.getElementById('pjList').addEventListener('keydown', function(e){
-    if(!e.target.classList || !e.target.classList.contains('efname')) return;
-    var row = e.target.closest('.pj'); if(!row) return;
-    if(e.key==='Enter'){ e.preventDefault(); commitEdit(row, row.getAttribute('data-id')); }
-    if(e.key==='Escape'){ e.preventDefault(); editId=null; renderPJ(); }
-  });
+
   document.getElementById('btnExp').addEventListener('click', expPJ);
   document.getElementById('btnImp').addEventListener('click', function(){
     document.getElementById('fileImp').click();
@@ -1856,12 +2008,13 @@
   if(u && typeof u.H==='number' && typeof u.L==='number'){
     inH.value=u.H; inL.value=u.L; inP.value=u.P; inW.value=u.W;
     if(u.T)  inT.value  = String(u.T);
+    inTP.value = String(u.TP||u.T||9);
     if(u.TB) inTB.value = String(u.TB);
   }
   buildChips();
   init3();
-  [inH,inL,inW,inP,inT,inTB].forEach(function(el){ el.addEventListener('input', render); });
-  [inT,inTB].forEach(function(el){ el.addEventListener('change', render); });
+  [inH,inL,inW,inP,inT,inTP,inTB].forEach(function(el){ el.addEventListener('input', render); });
+  [inT,inTP,inTB].forEach(function(el){ el.addEventListener('change', render); });
   render();
   renderPJ();
 })();
