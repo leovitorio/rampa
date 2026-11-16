@@ -55,13 +55,16 @@
   @media (min-width:520px){ .controls{grid-template-columns:repeat(2,1fr)} }
   .field{display:flex; flex-direction:column; gap:5px; min-width:0}
   .field label{font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--muted)}
-  .field input{
+  .field input, .field select{
     font:inherit; font-size:20px; font-weight:600; color:var(--ink);
     background:var(--bg); border:1px solid var(--line); border-radius:9px; padding:9px 11px; width:100%;
   }
-  .field input:focus{outline:2px solid var(--accent); outline-offset:1px}
+  .field select{font-size:16px; height:46px}
+  .field input:focus, .field select:focus{outline:2px solid var(--accent); outline-offset:1px}
   .field .hint{font-size:11.5px; color:var(--muted); min-height:1.2em}
-  .badge{margin-top:14px; border-radius:9px; padding:10px 13px; font-weight:600; font-size:14px; border:1px solid var(--line)}
+  .badge{margin-top:10px; border-radius:9px; padding:10px 13px; font-weight:600; font-size:14px;
+    border:1px solid var(--line)}
+  .badge:empty{display:none}
   .badge.ok{color:var(--ok); border-color:currentColor}
   .badge.warn{color:var(--warn); border-color:currentColor}
   .badge.bad{color:var(--bad); border-color:currentColor}
@@ -139,6 +142,8 @@
   .v3bar{display:flex; flex-wrap:wrap; gap:16px; align-items:center; margin-top:13px}
   .v3bar .exp{display:flex; align-items:center; gap:10px; flex:1; min-width:195px; font-size:13.5px; color:var(--muted)}
   .v3bar .exp input{flex:1; accent-color:var(--accent)}
+  #btnPlay.play{background:var(--accent); border-color:var(--accent); color:#fff}
+  #btnPlay.on{background:var(--surface); border-color:var(--line); color:var(--ink)}
   .vbtns{display:flex; gap:6px; flex-wrap:wrap}
   .vbtns button{padding:6px 11px; font-size:13px}
   .vbtns button.on{background:var(--accent); border-color:var(--accent); color:#fff}
@@ -244,8 +249,31 @@
         <input id="inW" type="number" min="25" max="80" step="1" value="40">
         <span class="hint">medida externa, laterais incluídas</span>
       </div>
+      <div class="field" id="fE1">
+        <label for="inT">Laterais e pisos</label>
+        <select id="inT">
+          <option value="6" selected>MDF 6 mm</option>
+          <option value="9">MDF 9 mm</option>
+          <option value="12">MDF 12 mm</option>
+          <option value="15">MDF 15 mm</option>
+          <option value="18">MDF 18 mm</option>
+        </select>
+        <span class="hint" id="hintT"></span>
+      </div>
+      <div class="field" id="fE2">
+        <label for="inTB">Fundo e travessas</label>
+        <select id="inTB">
+          <option value="6">MDF 6 mm</option>
+          <option value="9">MDF 9 mm</option>
+          <option value="12" selected>MDF 12 mm</option>
+          <option value="15">MDF 15 mm</option>
+          <option value="18">MDF 18 mm</option>
+        </select>
+        <span class="hint" id="hintTB"></span>
+      </div>
     </div>
     <div class="badge ok" id="badge"></div>
+    <div class="badge" id="badge2"></div>
     </div><!-- /dimleft -->
 
     <div class="savebox">
@@ -272,6 +300,9 @@
       <div class="hintbox">arraste para girar · roda do mouse para aproximar</div>
     </div>
     <div class="v3bar">
+      <div class="vbtns" id="abtns">
+        <button id="btnPlay" class="play">▶ Montar</button>
+      </div>
       <label class="exp">Explodir
         <input id="exp" type="range" min="0" max="100" value="0">
         <span id="expVal" style="min-width:34px; text-align:right; font-variant-numeric:tabular-nums">0%</span>
@@ -309,7 +340,20 @@
   </section>
 
   <section class="card">
-    <h2><span class="n">4</span>Lista de corte — madeira</h2>
+    <h2><span class="n">4</span>Plano de corte<span class="sub">para enviar à marcenaria</span></h2>
+    <div class="sheetscroll">
+      <div class="sheet">
+        <svg id="cutsheet" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1900 1340" width="1900" height="1340"
+             role="img" aria-label="Plano de corte: cada peça desenhada em escala com quantidade e medidas"></svg>
+      </div>
+    </div>
+    <p class="sheethint">Arraste para o lado para ver o plano inteiro — ou baixe abaixo.</p>
+    <div class="actions" style="margin:14px 0 18px">
+      <button class="primary" id="btnCutPng">Baixar plano de corte (PNG)</button>
+      <button id="btnCutSvg">SVG</button>
+      <button id="btnCopy">Copiar lista em texto</button>
+      <span class="note" id="copyNote"></span>
+    </div>
     <div class="tscroll">
       <table>
         <thead><tr><th></th><th>Peça</th><th>Qtd.</th><th>Medidas (cm)</th><th>Espessura</th><th>Observação</th></tr></thead>
@@ -317,10 +361,6 @@
       </table>
     </div>
     <p class="mut" id="chapa"></p>
-    <div class="actions" style="margin-top:12px">
-      <button id="btnCopy">Copiar lista para a marcenaria</button>
-      <span class="note" id="copyNote"></span>
-    </div>
   </section>
 
   <section class="card">
@@ -355,11 +395,12 @@
   "use strict";
 
   var FONT = '"Segoe UI", Arial, system-ui, sans-serif';
-  var T = 1.8;      // espessura da chapa (cm)
+  var T  = 0.6;     // espessura das laterais e dos pisos (cm) — vem do seletor
+  var TB = 1.2;     // espessura do fundo e das travessas (cm) — vem do seletor
   var RAIL = 4;     // guia lateral acima do piso (cm)
-  var LIP = 2;      // altura do piso na ponta que toca o chão (cm)
   var SARR = 2;     // sarrafo 2x2 cm
   var CARP = 0.5;   // espessura do carpete
+  function mm(v){ return n0(v*10)+' mm'; }
 
   var C = {
     paper:'#F7F3EC', panel:'#FFFDF9', frame:'#E3DACA',
@@ -387,7 +428,7 @@
   PC.forEach(function(p){ PCmap[p.id]=p; });
 
   var WHERE = {
-    A:'As duas paredes da estrutura — é o que sustenta tudo. O recorte diagonal define a inclinação, e os 4 cm que sobram acima do piso formam a guia que impede a cachorra de sair pela lateral.',
+    A:'As duas paredes da estrutura, cada uma numa peça só — é o que sustenta tudo. O corte diagonal define a inclinação, e os 4 cm que sobram acima do piso formam a guia que impede a cachorra de sair pela lateral. Sem emendas no meio do vão, é a solução mais rígida.',
     B:'A superfície inclinada por onde ela sobe. Encaixa entre as duas laterais, apoiada nos sarrafos F.',
     C:'O patamar plano do topo, no nível do colchão. Encaixa entre as laterais, apoiado nos sarrafos G e na borda do fechamento D.',
     D:'Painel vertical na ponta que encosta na cama, com a altura cheia da lateral. Fecha a estrutura, trava o esquadro e recebe a borda do piso da plataforma na face interna. Os 4 cm que passam acima do piso formam uma borda contínua com as guias laterais.',
@@ -399,9 +440,11 @@
   };
 
   var svg = document.getElementById('sheet');
+  var cut = document.getElementById('cutsheet');
   var inH=document.getElementById('inH'), inL=document.getElementById('inL'),
-      inW=document.getElementById('inW'), inP=document.getElementById('inP');
-  var badge = document.getElementById('badge');
+      inW=document.getElementById('inW'), inP=document.getElementById('inP'),
+      inT=document.getElementById('inT'), inTB=document.getElementById('inTB');
+  var badge = document.getElementById('badge'), badge2 = document.getElementById('badge2');
   var last = null;
 
   /* ---------- utilidades ---------- */
@@ -411,30 +454,38 @@
   function f(v){ return (Math.round(v*100)/100); }
 
   function calc(H,L,W,P){
-    var rise = H - LIP;
-    var run  = Math.sqrt(Math.max(1, L*L - rise*rise));
-    var rad  = Math.atan2(rise, run);
-    var clear = LIP + (H-LIP)/3 - T/Math.cos(rad) - 1;
+    /* a ponta do piso fica T/cos(ângulo) acima do chão — converge em 2 passadas */
+    var lip = T*1.1, rise, run, rad, k;
+    for(k=0;k<3;k++){
+      rise = H - lip;
+      run  = Math.sqrt(Math.max(1, L*L - rise*rise));
+      rad  = Math.atan2(rise, run);
+      lip  = T/Math.cos(rad);
+    }
+    rise = H - lip;
+    run  = Math.sqrt(Math.max(1, L*L - rise*rise));
+    rad  = Math.atan2(rise, run);
+    var clear = lip + (H-lip)/3 - T/Math.cos(rad) - 1;
     return {
-      H:H, L:L, W:W, P:P,
+      H:H, L:L, W:W, P:P, T:T, TB:TB, lip:lip,
       rise:rise, run:run, rad:rad, deg:rad*180/Math.PI,
       deckW: W - 2*T,
-      platD: P - T,
+      platD: P - TB,
       sarrR: L*0.8,
-      sarrP: (P-T)*0.8,
+      sarrP: (P-TB)*0.8,
       foot: run + P,
       totH: H + RAIL,
-      toeH: RAIL + LIP,
+      toeH: RAIL + lip,
       travH: Math.max(5, Math.min(10, Math.floor(clear)))
     };
   }
   function pieceDims(g,id){
     switch(id){
-      case 'A': return n0(g.foot)+' × '+n0(g.totH)+' × 1,8 cm';
-      case 'B': return n0(g.L)+' × '+n1(g.deckW)+' × 1,8 cm';
-      case 'C': return n1(g.platD)+' × '+n1(g.deckW)+' × 1,8 cm';
-      case 'D': return n1(g.deckW)+' × '+n0(g.totH)+' × 1,8 cm';
-      case 'E': return n1(g.deckW)+' × '+n0(g.travH)+' × 1,8 cm';
+      case 'A': return n0(g.foot)+' × '+n0(g.totH)+' cm';
+      case 'B': return n0(g.L)+' × '+n1(g.deckW)+' cm';
+      case 'C': return n1(g.platD)+' × '+n1(g.deckW)+' cm';
+      case 'D': return n1(g.deckW)+' × '+n0(g.totH)+' cm';
+      case 'E': return n1(g.deckW)+' × '+n0(g.travH)+' cm';
       case 'F': return n0(g.sarrR)+' × 2 × 2 cm';
       case 'G': return n0(g.sarrP)+' × 2 × 2 cm';
       case 'H': return n0(g.L)+' × '+n1(g.deckW)+' cm  e  '+n1(g.platD)+' × '+n1(g.deckW)+' cm';
@@ -444,17 +495,25 @@
   }
   function cutlist(g){
     return [
-      ['A','Lateral (perfil recortado)', 2, n0(g.foot)+' × '+n0(g.totH), '18 mm', 'conforme molde — corte reto de A a B'],
-      ['B','Piso da rampa', 1, n0(g.L)+' × '+n1(g.deckW), '18 mm', 'encaixa entre as laterais'],
-      ['C','Piso da plataforma', 1, n1(g.platD)+' × '+n1(g.deckW), '18 mm', 'encosta na face interna do fechamento D'],
-      ['D','Fechamento traseiro', 1, n1(g.deckW)+' × '+n0(g.totH), '18 mm', 'altura cheia, rente ao topo das laterais'],
-      ['E','Travessa inferior', 2, n1(g.deckW)+' × '+n0(g.travH), '18 mm', 'a 1/3 e a 3/4 do comprimento da rampa'],
+      ['A','Lateral (perfil recortado)', 2, n0(g.foot)+' × '+n0(g.totH), mm(T), 'conforme molde — corte reto de a a b'],
+      ['B','Piso da rampa', 1, n0(g.L)+' × '+n1(g.deckW), mm(T), 'encaixa entre as laterais'],
+      ['C','Piso da plataforma', 1, n1(g.platD)+' × '+n1(g.deckW), mm(T), 'encosta na face interna do fechamento D'],
+      ['D','Fechamento traseiro', 1, n1(g.deckW)+' × '+n0(g.totH), mm(TB), 'altura cheia, rente ao topo das laterais'],
+      ['E','Travessa inferior', 2, n1(g.deckW)+' × '+n0(g.travH), mm(TB), 'a 1/3 e a 3/4 do comprimento da rampa'],
       ['F','Sarrafo de apoio da rampa', 2, n0(g.sarrR)+' × 2 × 2', 'pinus', 'centralizado na diagonal, 80% do vão'],
       ['G','Sarrafo de apoio da plataforma', 2, n0(g.sarrP)+' × 2 × 2', 'pinus', 'centralizado no trecho plano']
     ];
   }
-  function chapaM2(g){
-    return (2*g.foot*g.totH + g.L*g.deckW + g.platD*g.deckW + g.deckW*g.totH + 2*g.deckW*g.travH)/10000;
+  /* área por espessura: finos (laterais + pisos) e grossos (fundo + travessas) */
+  function areas(g){
+    return {
+      thin : (2*g.foot*g.totH + g.L*g.deckW + g.platD*g.deckW)/10000,
+      thick: (g.deckW*g.totH + 2*g.deckW*g.travH)/10000
+    };
+  }
+  function areaTxt(g){
+    var a=areas(g);
+    return n1(a.thin)+' m² de '+mm(T)+' + '+n1(a.thick)+' m² de '+mm(TB);
   }
 
   /* ---------- posições dos parafusos ----------
@@ -463,28 +522,31 @@
     var S=[], sn=Math.sin(g.rad), cs=Math.cos(g.rad);
     var zL=0, zR=g.W;                       // faces externas das laterais
     var zA=T+SARR/2, zB=g.W-T-SARR/2;       // eixos dos sarrafos
-    function pair(x,y){ S.push({p:[x,y,zL], d:[0,0,1]}); S.push({p:[x,y,zR], d:[0,0,-1]}); }
+    function pair(x,y,tag){
+      S.push({p:[x,y,zL], d:[0,0,1],  t:tag});
+      S.push({p:[x,y,zR], d:[0,0,-1], t:tag});
+    }
 
     /* lateral -> sarrafo F (ao longo da rampa) */
     var i, t;
     for(i=0;i<5;i++){
       t = 0.16 + i*0.17;
-      pair(g.run*t + sn*(T+SARR/2), LIP + (g.H-LIP)*t - cs*(T+SARR/2));
+      pair(g.run*t + sn*(T+SARR/2), g.lip + (g.H-g.lip)*t - cs*(T+SARR/2), 'A');
     }
-    /* lateral -> sarrafo G (plataforma) */
-    pair(g.run + g.platD*0.25, g.H-T-SARR/2);
-    pair(g.run + g.platD*0.75, g.H-T-SARR/2);
     /* lateral -> travessas E */
-    var ex=[g.run/3 + T/2, g.run*0.75 + T/2];
-    for(i=0;i<2;i++){ pair(ex[i], g.travH*0.30); pair(ex[i], g.travH*0.72); }
+    var ex=[g.run/3 + TB/2, g.run*0.75 + TB/2];
+    for(i=0;i<2;i++){ pair(ex[i], g.travH*0.30, 'A'); pair(ex[i], g.travH*0.72, 'A'); }
+    /* lateral -> sarrafo G (plataforma) */
+    pair(g.run + g.platD*0.25, g.H-T-SARR/2, 'A');
+    pair(g.run + g.platD*0.75, g.H-T-SARR/2, 'A');
     /* lateral -> fechamento D */
     var dy=[0.12,0.38,0.64,0.88];
-    for(i=0;i<4;i++) pair(g.foot-T/2, g.totH*dy[i]);
+    for(i=0;i<4;i++) pair(g.foot-TB/2, g.totH*dy[i], 'A');
 
     /* piso B -> sarrafos F (por cima, descendo) */
     for(i=0;i<5;i++){
       t = 0.14 + i*0.18;
-      var bx=g.run*t, by=LIP+(g.H-LIP)*t;
+      var bx=g.run*t, by=g.lip+(g.H-g.lip)*t;
       S.push({p:[bx,by,zA], d:[sn,-cs,0]});
       S.push({p:[bx,by,zB], d:[sn,-cs,0]});
     }
@@ -500,11 +562,11 @@
   }
   /* furos que atravessam a lateral, em coordenadas (x,y) do molde */
   function lateralHoles(g){
-    var H=[], S=screwPoints(g);
+    var out=[], S=screwPoints(g);
     for(var i=0;i<S.length;i++){
-      if(Math.abs(S[i].d[2])===1 && S[i].p[2]===0) H.push([S[i].p[0], S[i].p[1]]);
+      if(S[i].t==='A' && S[i].p[2]===0) out.push([S[i].p[0], S[i].p[1]]);
     }
-    return H;
+    return out;
   }
 
   /* ===================================================================
@@ -563,6 +625,7 @@
 
   function build3(g){
     if(!V.ok) return;
+    if(anim.playing) stopAssembly();
     var i;
     for(i=0;i<V.geos.length;i++){ V.geos[i].dispose(); }
     for(i=0;i<V.matsAll.length;i++){ V.matsAll[i].dispose(); }
@@ -572,7 +635,7 @@
 
     var sn = Math.sin(g.rad), cs = Math.cos(g.rad);
     var nx = -sn, ny = cs;                                 // normal do piso inclinado
-    var topX = g.run/2, topY = (LIP+g.H)/2;                // meio da face de cima da rampa
+    var topX = g.run/2, topY = (g.lip+g.H)/2;              // meio da face de cima da rampa
 
     function add(pid, geo, pos, rotZ, dir){
       V.geos.push(geo);
@@ -597,12 +660,12 @@
       V.pick.push(m);
     }
 
-    /* A — laterais (perfil extrudado) */
+    /* A — laterais (perfil extrudado, peça única) */
     var sh = new THREE.Shape();
     sh.moveTo(0,0); sh.lineTo(g.foot,0); sh.lineTo(g.foot,g.totH); sh.lineTo(g.run,g.totH); sh.lineTo(0,g.toeH);
     sh.closePath();
-    add('A', new THREE.ExtrudeGeometry(sh,{depth:T,bevelEnabled:false}), [0,0,0],       0, [0,0,-g.W*1.55]);
-    add('A', new THREE.ExtrudeGeometry(sh,{depth:T,bevelEnabled:false}), [0,0,g.W-T],   0, [0,0, g.W*1.55]);
+    add('A', new THREE.ExtrudeGeometry(sh,{depth:T,bevelEnabled:false}), [0,0,0],     0, [0,0,-g.W*1.55]);
+    add('A', new THREE.ExtrudeGeometry(sh,{depth:T,bevelEnabled:false}), [0,0,g.W-T], 0, [0,0, g.W*1.55]);
 
     /* B — piso da rampa */
     add('B', new THREE.BoxGeometry(g.L, T, g.deckW),
@@ -614,20 +677,20 @@
         [g.run+g.platD/2, g.H-T/2, g.W/2], 0, [0, g.totH*0.62, 0]);
 
     /* D — fechamento traseiro (altura cheia da lateral) */
-    add('D', new THREE.BoxGeometry(T, g.totH, g.deckW),
-        [g.foot-T/2, g.totH/2, g.W/2], 0, [g.foot*0.34, 0, 0]);
+    add('D', new THREE.BoxGeometry(TB, g.totH, g.deckW),
+        [g.foot-TB/2, g.totH/2, g.W/2], 0, [g.foot*0.34, 0, 0]);
 
     /* E — travessas inferiores */
     var e1 = g.run/3, e2 = g.run*0.75;
-    add('E', new THREE.BoxGeometry(T, g.travH, g.deckW),
-        [e1+T/2, g.travH/2, g.W/2], 0, [-g.foot*0.07, -g.totH*0.9, 0]);
-    add('E', new THREE.BoxGeometry(T, g.travH, g.deckW),
-        [e2+T/2, g.travH/2, g.W/2], 0, [ g.foot*0.07, -g.totH*0.9, 0]);
+    add('E', new THREE.BoxGeometry(TB, g.travH, g.deckW),
+        [e1+TB/2, g.travH/2, g.W/2], 0, [-g.foot*0.07, -g.totH*0.9, 0]);
+    add('E', new THREE.BoxGeometry(TB, g.travH, g.deckW),
+        [e2+TB/2, g.travH/2, g.W/2], 0, [ g.foot*0.07, -g.totH*0.9, 0]);
 
     /* F — sarrafos da rampa */
     var fx = topX - nx*(T+SARR/2), fy = topY - ny*(T+SARR/2);
-    add('F', new THREE.BoxGeometry(g.sarrR, SARR, SARR), [fx, fy, T+SARR/2],        g.rad, [0,-g.totH*0.35,-g.W*0.95]);
-    add('F', new THREE.BoxGeometry(g.sarrR, SARR, SARR), [fx, fy, g.W-T-SARR/2],    g.rad, [0,-g.totH*0.35, g.W*0.95]);
+    add('F', new THREE.BoxGeometry(g.sarrR, SARR, SARR), [fx, fy, T+SARR/2],     g.rad, [0,-g.totH*0.35,-g.W*0.95]);
+    add('F', new THREE.BoxGeometry(g.sarrR, SARR, SARR), [fx, fy, g.W-T-SARR/2], g.rad, [0,-g.totH*0.35, g.W*0.95]);
 
     /* G — sarrafos da plataforma */
     add('G', new THREE.BoxGeometry(g.sarrP, SARR, SARR), [g.run+g.platD/2, g.H-T-SARR/2, T+SARR/2],     0, [0,-g.totH*0.28,-g.W*0.72]);
@@ -689,11 +752,54 @@
     applyExplode(); applySel(); resize3();
   }
 
+
   function applyExplode(){
     for(var i=0;i<V.meshes.length;i++){
       var m=V.meshes[i], u=m.userData;
       m.position.set(u.base[0]+u.dir[0]*V.expT, u.base[1]+u.dir[1]*V.expT, u.base[2]+u.dir[2]*V.expT);
     }
+  }
+
+  /* ---------- animação de montagem ---------- */
+  var ASM = ['A','E','D','F','G','B','C','H','P'];   /* ordem de montagem */
+  var anim = {raf:0, playing:false};
+  function nowMs(){ return (window.performance && performance.now) ? performance.now() : Date.now(); }
+  function orderOf(pid){ var k=ASM.indexOf(pid); return k<0?0:k; }
+  function easeOut(p){ return 1-Math.pow(1-p, 3); }
+
+  function setExpUI(v){
+    var s=document.getElementById('exp'); if(s) s.value=v;
+    var l=document.getElementById('expVal'); if(l) l.textContent=Math.round(v)+'%';
+  }
+  function stopAssembly(){
+    if(anim.raf) cancelAnimationFrame(anim.raf);
+    anim.raf=0; anim.playing=false;
+    var b=document.getElementById('btnPlay');
+    if(b){ b.className='play'; b.textContent='▶ Montar'; }
+  }
+  function playAssembly(){
+    if(!V.ok || !V.meshes.length) return;
+    stopAssembly();
+    anim.playing=true;
+    var b=document.getElementById('btnPlay');
+    if(b){ b.className='on'; b.textContent='■ Parar'; }
+    var N=ASM.length, step=430, win=820, total=(N-1)*step+win+250;
+    var t0=nowMs();
+    V.sel=null; applySel();
+    function frame(){
+      var el=nowMs()-t0;
+      for(var i=0;i<V.meshes.length;i++){
+        var m=V.meshes[i], u=m.userData;
+        var p=(el - orderOf(u.pid)*step)/win;
+        p = p<0?0:(p>1?1:p);
+        var e = 1 - easeOut(p);                       /* 1 = explodido, 0 = montado */
+        m.position.set(u.base[0]+u.dir[0]*e, u.base[1]+u.dir[1]*e, u.base[2]+u.dir[2]*e);
+      }
+      render3();
+      if(el<total){ anim.raf=requestAnimationFrame(frame); }
+      else { V.expT=0; applyExplode(); setExpUI(0); render3(); stopAssembly(); }
+    }
+    anim.raf=requestAnimationFrame(frame);
   }
   function lighten(hex){
     var c = new THREE.Color(hex); c.offsetHSL(0,0,0.14); return c.getHex();
@@ -813,6 +919,7 @@
 
   /* ---------- seleção / chips / info ---------- */
   function select(pid){
+    if(anim.playing) stopAssembly();
     V.sel = pid;
     applySel(); render3();
     var chips = document.querySelectorAll('#chips .chip');
@@ -829,8 +936,9 @@
     var el = document.getElementById('pinfo'), g = last;
     if(!pid){
       el.innerHTML = '<h3>Nenhuma peça selecionada</h3>'
-        + '<p>Clique numa peça do modelo ou numa etiqueta acima para destacá-la e ler onde ela entra na montagem. '
-        + 'Use o controle <b>Explodir</b> para afastar as peças e ver o encaixe.</p>';
+        + '<p><b>Clique numa peça</b> — no modelo ou numa etiqueta acima — para destacá-la e ler onde ela entra na montagem. '
+        + 'O controle <b>Explodir</b> afasta as peças para ver o encaixe. '
+        + 'As medidas de corte de cada peça estão na seção <b>Plano de corte</b>, abaixo.</p>';
       return;
     }
     var p = PCmap[pid];
@@ -956,7 +1064,7 @@
     o.push('<rect x="0" y="0" width="'+SW+'" height="'+SH+'" fill="'+C.paper+'"/>');
 
     o.push('<text x="40" y="46" font-size="25" font-weight="700" fill="'+C.txt+'">Rampa com plataforma para cachorro — estrutura autoportante</text>');
-    o.push('<text x="40" y="74" font-size="15" fill="'+C.mut+'">Plataforma '+n0(g.H)+' cm de altura · rampa '+n0(g.L)+' cm · plataforma '+n0(g.P)+' cm · largura total '+n0(g.W)+' cm · inclinação '+n0(g.deg)+'° · chapa 18 mm</text>');
+    o.push('<text x="40" y="74" font-size="15" fill="'+C.mut+'">Plataforma '+n0(g.H)+' cm de altura · rampa '+n0(g.L)+' cm · plataforma '+n0(g.P)+' cm · largura total '+n0(g.W)+' cm · inclinação '+n0(g.deg)+'° · laterais e pisos em '+mm(T)+', fundo e travessas em '+mm(TB)+'</text>');
     o.push('<text x="1860" y="46" text-anchor="end" font-size="13" fill="'+C.mut+'">medidas em centímetros</text>');
     o.push('<text x="1860" y="68" text-anchor="end" font-size="13" fill="'+C.mut+'">desenho fora de escala</text>');
     o.push('<line x1="40" y1="88" x2="1860" y2="88" stroke="'+C.frame+'" stroke-width="2"/>');
@@ -970,8 +1078,8 @@
       var s = Math.min(950/(g.foot+gap+bedLen), 290/(g.totH+8));
       var yF = py+400, toeX = px+110;
       var platX = toeX + g.run*s, endX = toeX + g.foot*s;
-      var yDeck = yF - g.H*s, yRail = yF - g.totH*s, yToe = yF - g.toeH*s, yLip = yF - LIP*s;
-      var ts = T*s;
+      var yDeck = yF - g.H*s, yRail = yF - g.totH*s, yToe = yF - g.toeH*s, yLip = yF - g.lip*s;
+      var ts = T*s, tbs = TB*s;
 
       o.push('<rect x="'+(px+20)+'" y="'+yF+'" width="'+(pw-40)+'" height="14" fill="#E7DFD2"/>');
       o.push('<line x1="'+(px+20)+'" y1="'+yF+'" x2="'+(px+pw-20)+'" y2="'+yF+'" stroke="#B9B0A3" stroke-width="2.5"/>');
@@ -990,17 +1098,17 @@
       o.push('<path d="M '+f(toeX)+','+f(yF)+' L '+f(endX)+','+f(yF)+' L '+f(endX)+','+f(yRail)+' L '+f(platX)+','+f(yRail)+' L '+f(toeX)+','+f(yToe)+' Z" fill="'+C.face+'" stroke="'+C.faceLine+'" stroke-width="2" stroke-linejoin="round"/>');
 
       var tr1 = toeX + g.run*s/3, tr2 = toeX + g.run*s*0.75, th2 = g.travH*s;
-      o.push('<rect x="'+f(tr1)+'" y="'+f(yF-th2)+'" width="'+f(ts)+'" height="'+f(th2)+'" fill="'+C.wood+'" stroke="'+C.woodLine+'" stroke-width="1.5"/>');
-      o.push('<rect x="'+f(tr2)+'" y="'+f(yF-th2)+'" width="'+f(ts)+'" height="'+f(th2)+'" fill="'+C.wood+'" stroke="'+C.woodLine+'" stroke-width="1.5"/>');
-      o.push('<rect x="'+f(endX-ts)+'" y="'+f(yRail)+'" width="'+f(ts)+'" height="'+f(yF-yRail)+'" fill="'+C.wood+'" stroke="'+C.woodLine+'" stroke-width="1.5"/>');
+      o.push('<rect x="'+f(tr1)+'" y="'+f(yF-th2)+'" width="'+f(tbs)+'" height="'+f(th2)+'" fill="'+C.wood+'" stroke="'+C.woodLine+'" stroke-width="1.5"/>');
+      o.push('<rect x="'+f(tr2)+'" y="'+f(yF-th2)+'" width="'+f(tbs)+'" height="'+f(th2)+'" fill="'+C.wood+'" stroke="'+C.woodLine+'" stroke-width="1.5"/>');
+      o.push('<rect x="'+f(endX-tbs)+'" y="'+f(yRail)+'" width="'+f(tbs)+'" height="'+f(yF-yRail)+'" fill="'+C.wood+'" stroke="'+C.woodLine+'" stroke-width="1.5"/>');
 
       var nx=Math.sin(g.rad)*ts, ny=Math.cos(g.rad)*ts;
       o.push('<path d="M '+f(toeX)+','+f(yLip)+' L '+f(platX)+','+f(yDeck)+' L '+f(platX+nx)+','+f(yDeck+ny)+' L '+f(toeX+nx)+','+f(yLip+ny)+' Z" fill="'+C.wood+'" stroke="'+C.woodLine+'" stroke-width="1.8"/>');
       o.push('<rect x="'+f(platX)+'" y="'+f(yDeck)+'" width="'+f(g.platD*s)+'" height="'+f(ts)+'" fill="'+C.wood+'" stroke="'+C.woodLine+'" stroke-width="1.8"/>');
       o.push('<line x1="'+f(toeX)+'" y1="'+f(yLip)+'" x2="'+f(platX)+'" y2="'+f(yDeck)+'" stroke="'+C.grip+'" stroke-width="5"/>');
       o.push('<line x1="'+f(toeX)+'" y1="'+f(yLip)+'" x2="'+f(platX)+'" y2="'+f(yDeck)+'" stroke="'+C.gripLine+'" stroke-width="5" stroke-dasharray="4 10"/>');
-      o.push('<line x1="'+f(platX)+'" y1="'+f(yDeck)+'" x2="'+f(endX-ts)+'" y2="'+f(yDeck)+'" stroke="'+C.grip+'" stroke-width="5"/>');
-      o.push('<line x1="'+f(platX)+'" y1="'+f(yDeck)+'" x2="'+f(endX-ts)+'" y2="'+f(yDeck)+'" stroke="'+C.gripLine+'" stroke-width="5" stroke-dasharray="4 10"/>');
+      o.push('<line x1="'+f(platX)+'" y1="'+f(yDeck)+'" x2="'+f(endX-tbs)+'" y2="'+f(yDeck)+'" stroke="'+C.grip+'" stroke-width="5"/>');
+      o.push('<line x1="'+f(platX)+'" y1="'+f(yDeck)+'" x2="'+f(endX-tbs)+'" y2="'+f(yDeck)+'" stroke="'+C.gripLine+'" stroke-width="5" stroke-dasharray="4 10"/>');
 
       o.push('<rect x="'+f(toeX+6)+'" y="'+f(yF-3)+'" width="16" height="7" rx="3" fill="'+C.rub+'"/>');
       o.push('<rect x="'+f(endX-26)+'" y="'+f(yF-3)+'" width="16" height="7" rx="3" fill="'+C.rub+'"/>');
@@ -1018,16 +1126,16 @@
       o.push(note(toeX+140, yRail-26, 'guia lateral de 4 cm (a lateral passa acima do piso)'));
       o.push(lead(toeX+134, yRail-30, toeX+0.80*g.run*s, yToe+0.80*(yRail-yToe)+7));
       o.push(note(toeX+0.52*g.run*s, yF-62, 'travessas inferiores (2×)', 'middle', 13.5));
-      o.push(lead(toeX+0.52*g.run*s, yF-56, tr1+ts/2, yF-th2/2));
-      o.push(note(platX-26, yDeck+52, 'fechamento traseiro de altura cheia', 'end', 13.5));
-      o.push(lead(platX-20, yDeck+48, endX-ts/2, yDeck+46));
+      o.push(lead(toeX+0.52*g.run*s, yF-56, tr1+tbs/2, yF-th2/2));
+      o.push(note(platX-26, yDeck+52, 'fechamento traseiro de altura cheia · '+mm(TB), 'end', 13.5));
+      o.push(lead(platX-20, yDeck+48, endX-tbs/2, yDeck+46));
       o.push(note(toeX+8, yF+104, 'pés de borracha nas duas extremidades', 'start', 13));
     })();
 
     /* ---------- P2 molde da lateral ---------- */
     (function(){
       var px=40, py=622, pw=1140, ph=430;
-      o.push(panel(px,py,pw,ph,'2 · MOLDE DA LATERAL — 2 peças iguais, chapa 18 mm · furos de parafuso marcados'));
+      o.push(panel(px,py,pw,ph,'2 · MOLDE DA LATERAL — 2 peças iguais, chapa 18 mm · ⊕ = furo de parafuso'));
 
       var s = Math.min(560/g.foot, 215/g.totH);
       var x0 = px+150, yb = py+330;
@@ -1040,8 +1148,8 @@
 
       o.push('<circle cx="'+f(x0)+'" cy="'+f(yToe)+'" r="4.5" fill="'+C.txt+'"/>');
       o.push('<circle cx="'+f(xp)+'" cy="'+f(yTop)+'" r="4.5" fill="'+C.txt+'"/>');
-      o.push(note(x0-16, yToe-12, 'A', 'middle', 16));
-      o.push(note(xp+2, yTop-13, 'B', 'middle', 16));
+      o.push(note(x0-16, yToe-12, 'a', 'middle', 16));
+      o.push(note(xp+2, yTop-13, 'b', 'middle', 16));
 
       o.push(dimA(x0, yToe, xp, yTop, -40, n0(g.L)+' cm'));
       o.push(dimH(x0, xp, yb+46, n0(g.run)+' cm', yb+16));
@@ -1050,10 +1158,9 @@
       o.push(dimV(xr+40, yDeckL, yb, n0(g.H)+' cm', xr+6, 1));
       o.push(dimV(xr+96, yTop, yb, n0(g.totH)+' cm', xr+6, 1));
       o.push(angMark(x0, yb, 52, g.deg, n0(g.deg)+'°'));
-      o.push(note(x0-14, yToe+30, 'ponta: '+n0(g.toeH)+' cm', 'end', 13.5));
+      o.push(note(x0-14, yToe+30, 'ponta: '+n1(g.toeH)+' cm', 'end', 13.5));
       o.push(lead(x0-16, yToe+26, x0-2, yToe+10));
 
-      /* furos de parafuso na lateral */
       var holes = lateralHoles(g), hh='';
       for (var q=0;q<holes.length;q++){
         var hx = x0 + holes[q][0]*s, hy = yb - holes[q][1]*s;
@@ -1068,12 +1175,12 @@
       o.push('<text x="'+(nx2+16)+'" y="'+(ny2+28)+'" font-size="14" font-weight="700" fill="'+C.txt+'">Como cortar a lateral</text>');
       var lines = [
         '1. Corte o retângulo de '+n0(g.foot)+' × '+n0(g.totH)+' cm.',
-        '2. Na ponta esquerda, marque '+n0(g.toeH)+' cm de altura (ponto A).',
-        '3. A '+n0(g.run)+' cm da ponta, marque a altura total (ponto B).',
-        '4. Corte reto de A até B e descarte a cunha.',
+        '2. Na ponta esquerda, marque '+n1(g.toeH)+' cm de altura (ponto a).',
+        '3. A '+n0(g.run)+' cm da ponta, marque a altura total (ponto b).',
+        '4. Corte reto de a até b e descarte a cunha.',
         '5. Repita, espelhando, para a segunda lateral.',
         '',
-        'A aresta A–B mede '+n0(g.L)+' cm e é onde o piso da',
+        'A aresta a–b mede '+n0(g.L)+' cm e é onde o piso da',
         'rampa se apoia (inclinação de '+n0(g.deg)+'°).',
         '',
         '⊕ = furo de parafuso: '+holes.length+' por lateral.',
@@ -1100,7 +1207,7 @@
       o.push(dimH(x2, x2+w2, y0+h+40, n1(g.platD)+' cm', y0+h+12));
       o.push(dimV(x0-38, y0, y0+h, n1(g.deckW)+' cm', x0-6, -1));
       o.push(note(px+20, py+ph-42, 'Carpete antiderrapante colado sobre os dois pisos.', 'start', 13));
-      o.push(note(px+20, py+ph-23, 'Plataforma: piso de '+n1(g.platD)+' cm — os outros 1,8 cm', 'start', 13));
+      o.push(note(px+20, py+ph-23, 'Plataforma: piso de '+n1(g.platD)+' cm — os outros '+n1(TB)+' cm', 'start', 13));
       o.push(note(px+20, py+ph-6, 'são a espessura do fechamento D.', 'start', 13));
     })();
 
@@ -1135,7 +1242,7 @@
       o.push('<circle cx="'+f(scz[1])+'" cy="'+f(yD-2)+'" r="3.4" fill="#9AA3A9" stroke="#5E6B73" stroke-width="1"/>');
 
       var ntx = px+400;
-      o.push(note(ntx, py+106, 'lateral 18 mm · piso 18 mm', 'start', 13));
+      o.push(note(ntx, py+106, 'lateral '+mm(T)+' · piso '+mm(T), 'start', 13));
       o.push(note(ntx, py+130, 'sarrafos 2 × 2 cm sustentam o piso', 'start', 13));
       o.push(note(ntx, py+154, 'guia de 4 cm acima do piso', 'start', 13));
       o.push(note(ntx, py+186, 'Parafusos: pela face externa da', 'start', 13));
@@ -1164,9 +1271,153 @@
         o.push('<text x="'+cx[3]+'" y="'+ry+'" font-size="13.5" font-weight="700" fill="'+C.txt+'">'+rows[r][3]+'</text>');
         o.push('<text x="'+cx[4]+'" y="'+ry+'" font-size="13" fill="'+C.txt+'">'+rows[r][4]+'</text>');
       }
-      o.push('<text x="'+(px+18)+'" y="'+(py+ph-40)+'" font-size="12.5" fill="'+C.mut+'">Chapa de 18 mm: '+n1(chapaM2(g))+' m² — uma chapa de 2,75 × 1,83 m atende.</text>');
+      o.push('<text x="'+(px+18)+'" y="'+(py+ph-40)+'" font-size="12.5" fill="'+C.mut+'">Chapa: '+areaTxt(g)+'.</text>');
       o.push('<text x="'+(px+18)+'" y="'+(py+ph-22)+'" font-size="12.5" fill="'+C.mut+'">F e G são sarrafos de pinus 2 × 2 cm.</text>');
       o.push('<text x="'+(px+18)+'" y="'+(py+ph-5)+'" font-size="12.5" fill="'+C.mut+'">'+screwPoints(g).length+' parafusos 4 × 40 mm — posições no modelo 3D.</text>');
+    })();
+
+    return o.join('');
+  }
+
+  /* ===================================================================
+     PLANO DE CORTE
+     =================================================================== */
+  function buildCutSheet(g){
+    var SW=1900, SH=1340, o=[];
+    var ar = areas(g), rows = cutlist(g);
+    var AX0=90, AX1=1830, AY0=150, AYMAX=830;      /* área de desenho */
+
+    function tw(s, fs){ return String(s).length*fs*0.56; }   /* largura aproximada do texto */
+
+    /* descrição das peças, na ordem do plano */
+    function parts(){
+      return [
+        {c:'A', n:'Lateral',               q:2, w:g.foot,  h:g.totH,  e:'MDF '+mm(T)+' · recorte', lat:true},
+        {c:'D', n:'Fechamento traseiro',   q:1, w:g.deckW, h:g.totH,  e:'MDF '+mm(TB), fill:'#E6CDA4'},
+        {c:'E', n:'Travessa inferior',     q:2, w:g.deckW, h:g.travH, e:'MDF '+mm(TB), fill:'#E6CDA4'},
+        {c:'B', n:'Piso da rampa',         q:1, w:g.L,     h:g.deckW, e:'MDF '+mm(T),  fill:'#DCC39A'},
+        {c:'C', n:'Piso da plataforma',    q:1, w:g.platD, h:g.deckW, e:'MDF '+mm(T),  fill:'#DCC39A'},
+        {c:'F', n:'Sarrafo da rampa',      q:2, w:g.sarrR, h:SARR,    e:'pinus 2 × 2 cm', fill:'#F0DDB4'},
+        {c:'G', n:'Sarrafo da plataforma', q:2, w:g.sarrP, h:SARR,    e:'pinus 2 × 2 cm', fill:'#F0DDB4'}
+      ];
+    }
+
+    /* distribui as peças em linhas, respeitando a largura do desenho E a dos rótulos */
+    function layout(S){
+      var list=parts(), cx=AX0, cy=AY0, rowMax=0, out=[];
+      for(var i=0;i<list.length;i++){
+        var p=list[i];
+        var w=p.w*S, h=Math.max(p.h*S, 8);
+        var h1=p.c+' · '+p.n;
+        var h2=p.q+' peça'+(p.q>1?'s':'')+'  ·  '+n0(p.w)+' × '+n1(p.h)+' cm  ·  '+p.e;
+        var bw=Math.max(w, tw(h1,16), tw(h2,13.5));
+        var tall=(h>=30);
+        var padL=tall?54:16, padR=tall?34:tw(n1(p.h)+' cm',14)+28;
+        var padB=p.lat?96:52;
+        var need=padL+bw+padR;
+        if(cx+need>AX1 && cx>AX0){ cx=AX0; cy+=rowMax+58; rowMax=0; }
+        out.push({p:p, x:cx+padL, y:cy+48, w:w, h:h, tall:tall, h1:h1, h2:h2});
+        cx+=need+40;
+        rowMax=Math.max(rowMax, 48+h+padB);
+      }
+      return {items:out, bottom:cy+rowMax};
+    }
+
+    var S = Math.min(520/g.foot, 210/g.totH), lay = layout(S), guard = 0;
+    while(lay.bottom > AYMAX && guard++ < 10){ S *= 0.86; lay = layout(S); }
+
+    o.push('<defs><marker id="arw2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="'+C.dim+'"/></marker></defs>');
+    o.push('<rect x="0" y="0" width="'+SW+'" height="'+SH+'" fill="'+C.paper+'"/>');
+
+    /* cabeçalho */
+    o.push('<text x="60" y="52" font-size="26" font-weight="700" fill="'+C.txt+'">Plano de corte — rampa com plataforma para cachorro</text>');
+    o.push('<text x="60" y="80" font-size="15" fill="'+C.mut+'">Peças desenhadas na mesma escala · medidas em centímetros · '
+      + 'MDF '+mm(T)+' (laterais e pisos) e MDF '+mm(TB)+' (fundo e travessas)</text>');
+    o.push('<text x="1840" y="52" text-anchor="end" font-size="14" fill="'+C.mut+'">Plataforma '+n0(g.H)+' cm · rampa '+n0(g.L)+' cm · largura '+n0(g.W)+' cm</text>');
+    o.push('<text x="1840" y="76" text-anchor="end" font-size="14" fill="'+C.mut+'">Inclinação '+n0(g.deg)+'° · ocupa '+n0(g.foot)+' cm de piso</text>');
+    o.push('<line x1="60" y1="98" x2="1840" y2="98" stroke="'+C.frame+'" stroke-width="2"/>');
+
+    /* ---------- desenha cada peça na posição calculada ---------- */
+    for(var k=0;k<lay.items.length;k++){
+      var it=lay.items[k], p=it.p, x=it.x, y=it.y, w=it.w, h=it.h, yb=y+h;
+
+      o.push('<text x="'+f(x)+'" y="'+f(y-30)+'" font-size="16" font-weight="700" fill="'+C.txt+'">'+it.h1+'</text>');
+      o.push('<text x="'+f(x)+'" y="'+f(y-11)+'" font-size="13.5" fill="'+C.mut+'">'+it.h2+'</text>');
+
+      if(p.lat){
+        var xp=x+g.run*S, yToe=yb-g.toeH*S;
+        o.push('<path d="M '+f(x)+','+f(yb)+' L '+f(x+w)+','+f(yb)+' L '+f(x+w)+','+f(y)
+          +' L '+f(xp)+','+f(y)+' L '+f(x)+','+f(yToe)+' Z" fill="'+C.face+'" stroke="'+C.faceLine+'" stroke-width="2.2" stroke-linejoin="round"/>');
+        o.push('<path d="M '+f(x)+','+f(yToe)+' L '+f(xp)+','+f(y)+' L '+f(x)+','+f(y)+' Z" fill="none" stroke="#C9BCA6" stroke-width="1.4" stroke-dasharray="6 5"/>');
+        o.push(note(x+16, y+24, 'descarte', 'start', 12.5));
+        o.push('<circle cx="'+f(x)+'" cy="'+f(yToe)+'" r="4" fill="'+C.txt+'"/>');
+        o.push('<circle cx="'+f(xp)+'" cy="'+f(y)+'" r="4" fill="'+C.txt+'"/>');
+        o.push(note(x+11, yToe+16, 'a', 'middle', 15));
+        o.push(note(xp+13, y-5, 'b', 'middle', 15));
+        o.push(dimH(x, xp, yb+36, n0(g.run)+' cm', yb+8));
+        o.push(dimH(xp, x+w, yb+36, n0(g.P)+' cm', yb+8));
+        o.push(dimH(x, x+w, yb+76, n0(g.foot)+' cm', yb+46));
+        o.push(dimV(x-38, y, yb, n0(g.totH)+' cm', x-6, -1));
+        o.push(note(x+w-6, y+h*0.5, 'corte reto de a até b', 'end', 13));
+        o.push(note(x+6, yToe+34, 'ponta '+n1(g.toeH)+' cm', 'start', 12.5));
+      } else {
+        o.push('<rect x="'+f(x)+'" y="'+f(y)+'" width="'+f(w)+'" height="'+f(h)+'" fill="'+(p.fill||C.face)+'" stroke="'+C.faceLine+'" stroke-width="2"/>');
+        o.push(dimH(x, x+w, yb+36, n0(p.w)+' cm', yb+8));
+        if(it.tall) o.push(dimV(x-38, y, yb, n1(p.h)+' cm', x-6, -1));
+        else        o.push(note(x+w+14, yb-h/2+5, n1(p.h)+' cm', 'start', 14));
+      }
+    }
+
+    /* ---------- tabela e resumo, embaixo ---------- */
+    (function(){
+      var ty=880, th=400;
+
+      /* relação de peças */
+      var px=60, pw=1090;
+      o.push('<rect x="'+px+'" y="'+ty+'" width="'+pw+'" height="'+th+'" rx="10" fill="'+C.panel+'" stroke="'+C.frame+'" stroke-width="1.5"/>');
+      o.push('<text x="'+(px+24)+'" y="'+(ty+34)+'" font-size="17" font-weight="700" fill="'+C.txt+'">Relação de peças</text>');
+      var cx=[px+24, px+52, px+420, px+480, px+700, px+840];
+      var y0=ty+76, rh=40;
+      o.push('<rect x="'+(px+14)+'" y="'+(y0-24)+'" width="'+(pw-28)+'" height="30" fill="'+C.head+'"/>');
+      var hd=['','PEÇA','QTD.','MEDIDAS (CM)','MATERIAL','OBSERVAÇÃO'];
+      for(var c=0;c<hd.length;c++){
+        o.push('<text x="'+cx[c]+'" y="'+(y0-4)+'" font-size="12" font-weight="700" fill="'+C.mut+'" letter-spacing=".5">'+hd[c]+'</text>');
+      }
+      for(var r=0;r<rows.length;r++){
+        var ry=y0+32+r*rh;
+        o.push('<line x1="'+(px+14)+'" y1="'+(ry+12)+'" x2="'+(px+pw-14)+'" y2="'+(ry+12)+'" stroke="'+C.frame+'" stroke-width="1"/>');
+        o.push('<text x="'+cx[0]+'" y="'+ry+'" font-size="15" font-weight="700" fill="'+C.woodLine+'">'+rows[r][0]+'</text>');
+        o.push('<text x="'+cx[1]+'" y="'+ry+'" font-size="14.5" fill="'+C.txt+'">'+rows[r][1]+'</text>');
+        o.push('<text x="'+cx[2]+'" y="'+ry+'" font-size="14.5" fill="'+C.txt+'">'+rows[r][2]+'</text>');
+        o.push('<text x="'+cx[3]+'" y="'+ry+'" font-size="15" font-weight="700" fill="'+C.txt+'">'+rows[r][3]+'</text>');
+        o.push('<text x="'+cx[4]+'" y="'+ry+'" font-size="13.5" fill="'+C.txt+'">'+rows[r][4]+'</text>');
+        o.push('<text x="'+cx[5]+'" y="'+ry+'" font-size="12.5" fill="'+C.mut+'">'+rows[r][5]+'</text>');
+      }
+
+      /* resumo */
+      var qx=1180, qw=660;
+      o.push('<rect x="'+qx+'" y="'+ty+'" width="'+qw+'" height="'+th+'" rx="10" fill="'+C.head+'" stroke="'+C.frame+'" stroke-width="1.5"/>');
+      o.push('<text x="'+(qx+24)+'" y="'+(ty+34)+'" font-size="17" font-weight="700" fill="'+C.txt+'">Resumo do pedido</text>');
+      var ln=[
+        ['MDF '+mm(T)+' — laterais e pisos', 1],
+        [n1(ar.thin)+' m²  ·  uma chapa de 2,75 × 1,83 m atende', 0],
+        ['', 0],
+        ['MDF '+mm(TB)+' — fundo e travessas', 1],
+        [n1(ar.thick)+' m²  ·  cabe no retalho de uma chapa', 0],
+        ['', 0],
+        ['Sarrafo de pinus 2 × 2 cm', 1],
+        ['2 × '+n0(g.sarrR)+' cm  +  2 × '+n0(g.sarrP)+' cm', 0],
+        ['', 0],
+        ['Fita de borda só na aresta diagonal e no topo da peça A.', 0],
+        ['A peça A é a única com recorte; as demais são retângulos.', 0],
+        ['O piso B tem '+n0(g.L)+' cm, mais que os '+n0(g.run)+' cm que a rampa', 0],
+        ['ocupa no chão — é a diagonal, não é engano de medida.', 0]
+      ];
+      for(var i=0;i<ln.length;i++){
+        if(!ln[i][0]) continue;
+        o.push('<text x="'+(qx+24)+'" y="'+(ty+74+i*23)+'" font-size="13.5" fill="'+(ln[i][1]?C.txt:C.mut)+'"'
+          + (ln[i][1]?' font-weight="700"':'')+'>'+ln[i][0]+'</text>');
+      }
     })();
 
     return o.join('');
@@ -1176,12 +1427,22 @@
      RENDER GERAL
      =================================================================== */
   function render(){
+    T  = clamp(inT.value, 6, 18)/10;
+    TB = clamp(inTB.value, 6, 18)/10;
+
     var H=clamp(inH.value,25,95), W=clamp(inW.value,25,80),
         L=clamp(inL.value,55,260), P=clamp(inP.value,15,90);
 
+    document.getElementById('hintT').textContent  = T<=0.9
+      ? 'leve e fácil de curvar — não recebe parafuso na borda'
+      : 'firme, aceita parafuso na borda';
+    document.getElementById('hintTB').textContent = TB>=1.2
+      ? 'é onde os parafusos das laterais ancoram'
+      : 'fino demais para ancorar parafuso — use 12 mm ou mais';
+
     document.getElementById('hintL').textContent = 'sugestão: ' + Math.round(H*2.2) + ' a ' + Math.round(H*2.6) + ' cm';
 
-    var minL = Math.ceil((H-LIP)*1.08);
+    var minL = Math.ceil((H - T*1.1)*1.08);
     if (L <= minL){
       badge.className='badge bad';
       badge.textContent='O comprimento da rampa precisa ser maior que a altura: use pelo menos '+Math.max(minL+1, Math.round(H*1.6))+' cm.';
@@ -1199,6 +1460,7 @@
     build3(g);
     render3();
     svg.innerHTML = buildSheet(g);
+    cut.innerHTML = buildCutSheet(g);
 
     document.getElementById('spAng').textContent  = n0(g.deg)+'°';
     document.getElementById('spFoot').textContent = n0(g.foot)+' cm';
@@ -1212,9 +1474,24 @@
           + '<td class="num">'+rows[i][3]+'</td><td>'+rows[i][4]+'</td><td><small>'+rows[i][5]+'</small></td></tr>';
     }
     document.getElementById('cutBody').innerHTML = tb;
+    var ar = areas(g);
     document.getElementById('chapa').innerHTML =
-      '<small>Área total das peças: <b>'+n1(chapaM2(g))+' m²</b> de chapa de 18 mm — uma chapa inteira de 2,75 × 1,83 m (5,03 m²) é suficiente. '
-      + 'Peça MDF, MDP ou compensado; evite chapa mais fina que 15 mm.</small>';
+      '<small>Chapa necessária: <b>'+n1(ar.thin)+' m² de '+mm(T)+'</b> (laterais e pisos) e '
+      + '<b>'+n1(ar.thick)+' m² de '+mm(TB)+'</b> (fundo e travessas). '
+      + 'Uma chapa inteira de cada (2,75 × 1,83 m) sobra bastante — peça o retalho de volta.</small>';
+
+    /* aviso estrutural dependente da espessura */
+    if (T <= 0.9 && g.foot > 110){
+      badge2.className='badge warn';
+      badge2.textContent='Lateral de '+n0(g.foot)+' cm em '+mm(T)+': vai flexionar. Cole bem as travessas e '
+        + 'considere uma terceira no meio da rampa, ou suba as laterais para 9–12 mm.';
+    } else if (TB < 1.2){
+      badge2.className='badge warn';
+      badge2.textContent='O fundo e as travessas em '+mm(TB)+' não seguram parafuso na borda. '
+        + 'Use 12 mm ou mais nessas peças, ou monte com cantoneiras de pinus.';
+    } else {
+      badge2.className='badge'; badge2.textContent='';
+    }
 
     document.getElementById('matList').innerHTML =
       '<li>Carpete ou manta antiderrapante — '+n0(g.L)+' × '+n1(g.deckW)+' cm e '+n1(g.platD)+' × '+n1(g.deckW)+' cm</li>'
@@ -1223,13 +1500,17 @@
       + '<li>Cola branca para madeira</li>'
       + '<li>Fita de borda ou tinta/verniz à base de água <small>(atóxico, seguro para animais)</small></li>';
 
+    var recSarr = RAIL*Math.cos(g.rad) + g.T;   /* recuo perpendicular da aresta a–b ao topo do sarrafo */
     document.getElementById('steps').innerHTML =
-      '<li>Cole e parafuse os sarrafos <b>F</b> ('+n0(g.sarrR)+' cm) na face interna de cada lateral <b>A</b>, acompanhando a aresta inclinada A–B e '
-      + 'rebaixados 1,8 cm dela, para o piso ficar no nível da guia. Centralize-os: sobram cerca de '
-      + n0(g.L*0.1)+' cm de folga em cada ponta.</li>'
+      '<li>Na face interna de cada lateral <b>A</b>, risque uma linha paralela à aresta inclinada a–b, '
+      + 'recuada <b>'+n1(recSarr)+' cm</b> dela (medidos perpendicularmente à aresta). '
+      + 'O topo do sarrafo <b>F</b> ('+n0(g.sarrR)+' cm) fica encostado nessa linha — assim o piso, que apoia sobre o sarrafo, '
+      + 'nasce '+n0(RAIL)+' cm abaixo do topo da lateral e a guia de '+n0(RAIL)+' cm se forma sozinha. '
+      + 'Cole e parafuse o sarrafo centralizado no comprimento: sobram cerca de '+n0(g.L*0.1)+' cm de folga em cada ponta.</li>'
       + '<li>Faça o mesmo com os sarrafos <b>G</b> ('+n0(g.sarrP)+' cm), centralizados no trecho plano da plataforma.</li>'
       + '<li>Una as duas laterais com o fechamento traseiro <b>D</b> e as travessas <b>E</b> (a 1/3 e a 3/4 da rampa), esquadrejando o conjunto. '
-      + 'O <b>D</b> tem a altura cheia de '+n0(g.totH)+' cm: alinhe o topo dele com o topo das laterais.</li>'
+      + 'Essas são as peças de '+mm(TB)+': é na borda delas que os parafusos das laterais ancoram, '
+      + 'então passe cola branca em toda a junta. O <b>D</b> tem a altura cheia de '+n0(g.totH)+' cm — alinhe o topo dele com o topo das laterais.</li>'
       + '<li>Encaixe e parafuse o piso da rampa <b>B</b> e o da plataforma <b>C</b> sobre os sarrafos — o <b>C</b> encosta na face interna do <b>D</b>.</li>'
       + '<li>Cole o carpete <b>H</b> nos dois pisos, cobrindo até as guias.</li>'
       + '<li>Os <b>'+screwPoints(g).length+' parafusos</b> entram nos pontos marcados: '+lateralHoles(g).length
@@ -1243,7 +1524,7 @@
 
     if (V.sel) select(V.sel); else showInfo(null);
 
-    lsSet(LSL, {H:g.H, L:g.L, P:g.P, W:g.W});
+    lsSet(LSL, {H:g.H, L:g.L, P:g.P, W:g.W, T:T*10, TB:TB*10});
     renderPJ();
   }
 
@@ -1251,43 +1532,46 @@
   function name(ext){
     return 'rampa-'+n0(last.H)+'alt-'+n0(last.L)+'ramp-'+n0(last.P)+'plat-'+n0(last.W)+'larg.'+ext;
   }
-  function raster(kind){
-    var xml = new XMLSerializer().serializeToString(svg);
+  function raster(el, w, h, kind, prefix){
+    var xml = new XMLSerializer().serializeToString(el);
     var img = new Image();
     img.onload = function(){
       var c=document.createElement('canvas');
-      c.width=2600; c.height=1505;
+      c.width=w; c.height=h;
       var ctx=c.getContext('2d');
-      ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,c.width,c.height);
-      ctx.drawImage(img,0,0,c.width,c.height);
+      ctx.fillStyle='#FFFFFF'; ctx.fillRect(0,0,w,h);
+      ctx.drawImage(img,0,0,w,h);
       var a=document.createElement('a');
       a.href=c.toDataURL('image/'+kind, .95);
-      a.download=name(kind==='jpeg'?'jpg':'png');
+      a.download=prefix+name(kind==='jpeg'?'jpg':'png');
       a.click();
     };
     img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(xml);
   }
-  document.getElementById('btnPng').addEventListener('click', function(){ raster('png'); });
-  document.getElementById('btnJpg').addEventListener('click', function(){ raster('jpeg'); });
-  document.getElementById('btnSvg').addEventListener('click', function(){
-    var xml=new XMLSerializer().serializeToString(svg);
+  function vector(el, prefix){
+    var xml=new XMLSerializer().serializeToString(el);
     var a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob([xml],{type:'image/svg+xml'}));
-    a.download=name('svg'); a.click();
+    a.download=prefix+name('svg'); a.click();
     setTimeout(function(){ URL.revokeObjectURL(a.href); },2000);
-  });
+  }
+  document.getElementById('btnPng').addEventListener('click', function(){ raster(svg,2600,1505,'png','projeto-'); });
+  document.getElementById('btnJpg').addEventListener('click', function(){ raster(svg,2600,1505,'jpeg','projeto-'); });
+  document.getElementById('btnSvg').addEventListener('click', function(){ vector(svg,'projeto-'); });
+  document.getElementById('btnCutPng').addEventListener('click', function(){ raster(cut,2600,1834,'png','corte-'); });
+  document.getElementById('btnCutSvg').addEventListener('click', function(){ vector(cut,'corte-'); });
   document.getElementById('btnCopy').addEventListener('click', function(){
     var g=last, rows=cutlist(g);
     var txt='RAMPA COM PLATAFORMA PARA CACHORRO — LISTA DE CORTE\n'
-      + 'Chapa de 18 mm (MDF, MDP ou compensado) — medidas em cm\n'
+      + 'MDF '+mm(T)+' (laterais e pisos) e MDF '+mm(TB)+' (fundo e travessas) — medidas em cm\n'
       + 'Altura da plataforma '+n0(g.H)+' | rampa '+n0(g.L)+' | plataforma '+n0(g.P)+' | largura total '+n0(g.W)+'\n\n';
     for (var i=0;i<rows.length;i++){
       txt += rows[i][0]+') '+rows[i][1]+' — '+rows[i][2]+' un — '+rows[i][3]+' cm — '+rows[i][4]
            + (rows[i][5] ? ' ('+rows[i][5]+')' : '') + '\n';
     }
-    txt += '\nA peça A tem recorte: retângulo de '+n0(g.foot)+' × '+n0(g.totH)+' cm, com '+n0(g.toeH)
-         + ' cm de altura numa ponta e corte reto subindo até a altura total a '+n0(g.run)+' cm dessa ponta.\n'
-         + 'Área total: '+n1(chapaM2(g))+' m².\n';
+    txt += '\nA peca A tem recorte: retangulo de '+n0(g.foot)+' x '+n0(g.totH)+' cm, com '+n0(g.toeH)
+         + ' cm de altura numa ponta e corte reto subindo ate a altura total a '+n0(g.run)+' cm dessa ponta.\n'
+         + 'Chapa: '+n1(areas(g).thin)+' m2 de '+mm(T)+' e '+n1(areas(g).thick)+' m2 de '+mm(TB)+'.\n';
     var nt=document.getElementById('copyNote');
     if (navigator.clipboard && navigator.clipboard.writeText){
       navigator.clipboard.writeText(txt).then(function(){ nt.textContent='Copiado.'; },
@@ -1296,10 +1580,15 @@
   });
 
   /* ---------- controles do 3D ---------- */
+  document.getElementById('btnPlay').addEventListener('click', function(){
+    if(anim.playing) stopAssembly(); else playAssembly();
+  });
   document.getElementById('exp').addEventListener('input', function(){
+    stopAssembly();
     V.expT = this.value/100;
     document.getElementById('expVal').textContent = this.value+'%';
-    applyExplode(); render3();
+    applyExplode();
+    render3();
   });
   document.getElementById('vbtns').addEventListener('click', function(e){
     var b = e.target.closest ? e.target.closest('button[data-v]') : null;
@@ -1334,9 +1623,15 @@
   function lsGet(k){ try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch(e){ return null; } }
   function lsSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
   function store(){ var s=lsGet(LSK); if(!s||!s.items||!s.items.length&&!Array.isArray(s.items)) s={v:1,items:[]}; if(!Array.isArray(s.items)) s.items=[]; return s; }
-  function dimsNow(){ return last ? {H:last.H, L:last.L, P:last.P, W:last.W} : null; }
-  function dimStr(d){ return n0(d.H)+' · '+n0(d.L)+' · '+n0(d.P)+' · '+n0(d.W)+' cm'; }
-  function sameDims(a,b){ return a.H===b.H && a.L===b.L && a.P===b.P && a.W===b.W; }
+  function dimsNow(){ return last ? {H:last.H, L:last.L, P:last.P, W:last.W, T:T*10, TB:TB*10} : null; }
+  function dimStr(d){
+    return n0(d.H)+' · '+n0(d.L)+' · '+n0(d.P)+' · '+n0(d.W)+' cm'
+         + (d.T ? '  ·  '+n0(d.T)+'/'+n0(d.TB)+' mm' : '');
+  }
+  function sameDims(a,b){
+    return a.H===b.H && a.L===b.L && a.P===b.P && a.W===b.W
+        && (a.T||18)===(b.T||18) && (a.TB||18)===(b.TB||18);
+  }
   function pjNote(t){ document.getElementById('pjNote').innerHTML = t ? '<small>'+escHtml(t)+'</small>' : ''; }
 
   /* ---------- modal de confirmação ---------- */
@@ -1448,7 +1743,7 @@
       if(s.items[i].name.toLowerCase()===nm.toLowerCase()) ex=i;
     }
     var item={ id:(ex>=0 ? s.items[ex].id : 'p'+Date.now()), name:nm,
-               H:d.H, L:d.L, P:d.P, W:d.W, ts:Date.now() };
+               H:d.H, L:d.L, P:d.P, W:d.W, T:d.T, TB:d.TB, ts:Date.now() };
     if(ex>=0) s.items[ex]=item; else s.items.unshift(item);
     if(s.items.length>30) s.items.length=30;
     openedId = item.id;
@@ -1461,6 +1756,7 @@
     if(i<0) return;
     var p=s.items[i];
     inH.value=p.H; inL.value=p.L; inP.value=p.P; inW.value=p.W;
+    inT.value = String(p.T||18); inTB.value = String(p.TB||18);
     openedId=id; editId=null;
     render(); pjNote('Aberto: '+p.name);
   }
@@ -1512,7 +1808,7 @@
         }
         if(dup) continue;
         s.items.push({ id:'p'+Date.now()+'_'+add, name:String(p.name||'Sem nome').slice(0,40),
-                       H:p.H, L:p.L, P:p.P, W:p.W, ts:p.ts||Date.now() });
+                       H:p.H, L:p.L, P:p.P, W:p.W, T:p.T||18, TB:p.TB||18, ts:p.ts||Date.now() });
         add++;
       }
       if(add) lsSet(LSK,s);
@@ -1559,10 +1855,13 @@
   var u = lsGet(LSL);
   if(u && typeof u.H==='number' && typeof u.L==='number'){
     inH.value=u.H; inL.value=u.L; inP.value=u.P; inW.value=u.W;
+    if(u.T)  inT.value  = String(u.T);
+    if(u.TB) inTB.value = String(u.TB);
   }
   buildChips();
   init3();
-  [inH,inL,inW,inP].forEach(function(el){ el.addEventListener('input', render); });
+  [inH,inL,inW,inP,inT,inTB].forEach(function(el){ el.addEventListener('input', render); });
+  [inT,inTB].forEach(function(el){ el.addEventListener('change', render); });
   render();
   renderPJ();
 })();
